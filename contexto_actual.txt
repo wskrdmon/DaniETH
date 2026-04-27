@@ -1,0 +1,1612 @@
+﻿
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\backend\app\main.py ---
+
+"""
+AplicaciÃ³n principal de FastAPI para DANI-ETH.
+
+Este es el entry point del backend. Configura:
+- La aplicaciÃ³n FastAPI con metadata.
+- CORS para permitir llamadas desde el frontend.
+- InicializaciÃ³n de Firebase al arrancar.
+- Registro de los routers de la API.
+"""
+import logging
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.core.config import settings
+from app.core.firebase import initialize_firebase
+from app.api.v1.router import api_router
+
+# Configurar logging
+logging.basicConfig(
+    level=logging.DEBUG if settings.app_debug else logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Eventos de ciclo de vida de la aplicaciÃ³n.
+    Se ejecutan al iniciar y al apagar el servidor.
+    """
+    # --- Startup ---
+    logger.info(f"Iniciando {settings.app_name} en modo {settings.app_env}")
+
+    # Inicializar Firebase
+    firebase_ok = initialize_firebase()
+    if not firebase_ok:
+        logger.warning(
+            "Firebase no se pudo inicializar. "
+            "Los endpoints protegidos no funcionarÃ¡n hasta que se agreguen las credenciales."
+        )
+    else:
+        logger.info("Firebase inicializado correctamente")
+
+    yield  # La app corre aquÃ­
+
+    # --- Shutdown ---
+    logger.info("Apagando aplicaciÃ³n")
+
+
+# Crear la aplicaciÃ³n FastAPI
+app = FastAPI(
+    title=settings.app_name,
+    description="Backend del orquestador inteligente de Ethical Hacking DANI-ETH",
+    version="0.1.0",
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
+
+# Configurar CORS (debe ir antes de los routers)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Registrar el router principal de la API
+app.include_router(api_router)
+
+
+@app.get("/", tags=["root"])
+async def root():
+    """Endpoint raÃ­z, redirige mentalmente a la documentaciÃ³n."""
+    return {
+        "message": f"Bienvenido a {settings.app_name}",
+        "docs": "/docs",
+        "health": "/api/v1/health",
+    }
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\backend\app\__init__.py ---
+
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\backend\app\api\__init__.py ---
+
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\backend\app\api\v1\health.py ---
+
+"""
+Endpoint de health check.
+
+Verifica el estado del backend y sus dependencias (Firebase, Redis).
+Ãštil para:
+- Verificar que el setup inicial funciona.
+- Monitoreo en producciÃ³n.
+- Debugging de problemas de conexiÃ³n.
+"""
+from fastapi import APIRouter
+from pydantic import BaseModel
+
+from app.core.config import settings
+from app.core.firebase import is_firebase_ready
+
+router = APIRouter(prefix="/health", tags=["health"])
+
+
+class HealthResponse(BaseModel):
+    """Respuesta del health check."""
+    status: str
+    app_name: str
+    app_env: str
+    firebase: str
+    project_id: str | None = None
+
+
+@router.get("", response_model=HealthResponse)
+async def health_check() -> HealthResponse:
+    """
+    Verifica el estado general del backend.
+
+    Returns:
+        Estado del servicio, ambiente y conexiones.
+    """
+    return HealthResponse(
+        status="ok",
+        app_name=settings.app_name,
+        app_env=settings.app_env,
+        firebase="connected" if is_firebase_ready() else "not_configured",
+        project_id=settings.firebase_project_id if is_firebase_ready() else None,
+    )
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\backend\app\api\v1\me.py ---
+
+"""
+Endpoint protegido de ejemplo.
+
+Sirve para verificar que el flujo de autenticaciÃ³n funciona:
+1. Frontend hace login con Firebase Auth.
+2. Frontend obtiene el ID Token.
+3. Frontend lo envÃ­a en el header Authorization: Bearer <token>.
+4. Backend valida el token y devuelve la info del usuario.
+"""
+from typing import Annotated
+
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+
+from app.core.security import get_current_user
+
+router = APIRouter(prefix="/me", tags=["me"])
+
+
+class UserResponse(BaseModel):
+    """InformaciÃ³n del usuario autenticado."""
+    uid: str
+    email: str | None = None
+    name: str | None = None
+    email_verified: bool = False
+
+
+@router.get("", response_model=UserResponse)
+async def get_me(user: Annotated[dict, Depends(get_current_user)]) -> UserResponse:
+    """
+    Devuelve la info del usuario autenticado actual.
+    Requiere un token JWT vÃ¡lido de Firebase en el header Authorization.
+    """
+    return UserResponse(
+        uid=user["uid"],
+        email=user.get("email"),
+        name=user.get("name"),
+        email_verified=user.get("email_verified", False),
+    )
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\backend\app\api\v1\router.py ---
+
+"""
+Router principal de la API v1.
+Agrupa todos los routers individuales y los expone con el prefijo /api/v1.
+"""
+from fastapi import APIRouter
+
+from app.api.v1 import health, me
+
+# Router principal de v1
+api_router = APIRouter(prefix="/api/v1")
+
+# Registrar routers individuales
+api_router.include_router(health.router)
+api_router.include_router(me.router)
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\backend\app\api\v1\__init__.py ---
+
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\backend\app\core\config.py ---
+
+"""
+ConfiguraciÃ³n global de la aplicaciÃ³n.
+Lee las variables del .env usando Pydantic Settings.
+"""
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from functools import lru_cache
+
+
+class Settings(BaseSettings):
+    """ConfiguraciÃ³n tipada del backend."""
+
+    # AplicaciÃ³n
+    app_name: str = "DANI-ETH Backend"
+    app_env: str = "development"
+    app_debug: bool = True
+    app_port: int = 8000
+
+    # CORS
+    cors_origins: str = "http://localhost:5173"
+
+    # Firebase
+    firebase_credentials_path: str = "./credentials/firebase-admin-key.json"
+    firebase_project_id: str = ""
+
+    # Redis
+    redis_url: str = "redis://localhost:6379"
+
+    # Gemini (lo configura el compaÃ±ero del orquestador)
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-1.5-flash"
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """Convierte el string de orÃ­genes en lista."""
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+
+@lru_cache
+def get_settings() -> Settings:
+    """Singleton de configuraciÃ³n (cacheado)."""
+    return Settings()
+
+
+# Instancia exportada para uso directo
+settings = get_settings()
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\backend\app\core\firebase.py ---
+
+"""
+InicializaciÃ³n de Firebase Admin SDK.
+
+Este mÃ³dulo:
+- Inicializa la conexiÃ³n con Firebase usando el archivo de credenciales.
+- Expone clientes para Auth y Firestore.
+- Maneja el caso en que las credenciales no estÃ©n disponibles (modo degradado).
+"""
+import os
+import logging
+from pathlib import Path
+
+import firebase_admin
+from firebase_admin import credentials, auth, firestore
+
+from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+# Estado global de Firebase
+_firebase_app: firebase_admin.App | None = None
+_firestore_client = None
+
+
+def initialize_firebase() -> bool:
+    """
+    Inicializa Firebase Admin SDK.
+
+    Returns:
+        True si la inicializaciÃ³n fue exitosa, False si las credenciales no existen.
+    """
+    global _firebase_app, _firestore_client
+
+    if _firebase_app is not None:
+        logger.info("Firebase ya estaba inicializado")
+        return True
+
+    cred_path = Path(settings.firebase_credentials_path)
+
+    if not cred_path.exists():
+        logger.warning(
+            f"Archivo de credenciales no encontrado en {cred_path.absolute()}. "
+            "Firebase no estarÃ¡ disponible. "
+            "Descargue firebase-admin-key.json desde Firebase Console."
+        )
+        return False
+
+    try:
+        cred = credentials.Certificate(str(cred_path))
+        _firebase_app = firebase_admin.initialize_app(cred, {
+            "projectId": settings.firebase_project_id,
+        })
+        _firestore_client = firestore.client()
+        logger.info(f"Firebase inicializado correctamente para proyecto: {settings.firebase_project_id}")
+        return True
+    except Exception as e:
+        logger.error(f"Error inicializando Firebase: {e}")
+        return False
+
+
+def is_firebase_ready() -> bool:
+    """Verifica si Firebase estÃ¡ listo para usarse."""
+    return _firebase_app is not None
+
+
+def get_firestore():
+    """Devuelve el cliente de Firestore. Lanza error si Firebase no estÃ¡ inicializado."""
+    if _firestore_client is None:
+        raise RuntimeError(
+            "Firestore no estÃ¡ disponible. "
+            "Verificar que firebase-admin-key.json exista en backend/credentials/"
+        )
+    return _firestore_client
+
+
+def get_auth():
+    """Devuelve el mÃ³dulo de Firebase Auth para validar tokens."""
+    if _firebase_app is None:
+        raise RuntimeError("Firebase Auth no estÃ¡ disponible.")
+    return auth
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\backend\app\core\security.py ---
+
+"""
+Dependencias de autenticaciÃ³n para FastAPI.
+
+Validan el token JWT que envÃ­a Firebase en cada request,
+y exponen el usuario actual a los endpoints protegidos.
+
+Uso en un endpoint:
+    from app.core.security import get_current_user
+
+    @router.get("/protected")
+    async def protected_route(user = Depends(get_current_user)):
+        return {"uid": user["uid"], "email": user["email"]}
+"""
+import logging
+from typing import Annotated
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+from app.core.firebase import get_auth, is_firebase_ready
+
+logger = logging.getLogger(__name__)
+
+# Esquema Bearer para extraer el token del header Authorization
+security_scheme = HTTPBearer(auto_error=False)
+
+
+async def get_current_user(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security_scheme)]
+) -> dict:
+    """
+    Valida el token JWT de Firebase y devuelve la info del usuario.
+
+    Raises:
+        HTTPException 401: si no hay token, estÃ¡ expirado o es invÃ¡lido.
+        HTTPException 503: si Firebase no estÃ¡ disponible.
+    """
+    if not is_firebase_ready():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Servicio de autenticaciÃ³n no disponible",
+        )
+
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token no proporcionado",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = credentials.credentials
+
+    try:
+        # Verificar y decodificar el token con Firebase
+        decoded_token = get_auth().verify_id_token(token)
+        return decoded_token
+    except Exception as e:
+        logger.warning(f"Token invÃ¡lido: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invÃ¡lido o expirado",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+async def get_current_user_optional(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security_scheme)]
+) -> dict | None:
+    """
+    VersiÃ³n opcional: si hay token lo valida, si no, devuelve None.
+    Ãštil para endpoints que se comportan distinto segÃºn si hay usuario logueado.
+    """
+    if credentials is None:
+        return None
+
+    try:
+        return await get_current_user(credentials)
+    except HTTPException:
+        return None
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\backend\app\core\__init__.py ---
+
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\App.tsx ---
+
+/**
+ * Componente raÃ­z de la aplicaciÃ³n.
+ * Envuelve toda la app con los providers necesarios y monta el router.
+ */
+import { RouterProvider } from 'react-router-dom';
+
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { router } from '@/router';
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <RouterProvider router={router} />
+    </ThemeProvider>
+  );
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\main.tsx ---
+
+/**
+ * Entry point del frontend.
+ * Monta el componente raÃ­z e inicializa los servicios globales.
+ */
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+
+// Inicializar servicios globales antes de montar la app
+import '@/lib/firebase'; // Inicializa Firebase SDK
+import '@/lib/i18n';     // Inicializa i18n
+
+// Estilos globales
+import '@/styles/globals.css';
+
+import App from './App';
+
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error('No se encontrÃ³ el elemento root en index.html');
+}
+
+createRoot(rootElement).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\router.tsx ---
+
+/**
+ * ConfiguraciÃ³n central de rutas con React Router.
+ *
+ * Estructura:
+ *   /                  â†’ redirige a /dashboard
+ *   /dashboard         â†’ DashboardLayout > DashboardPage
+ *   /vulnerabilities   â†’ DashboardLayout > VulnerabilityHubPage
+ *   /ai-pentesting     â†’ DashboardLayout > AIPentestingPage
+ *   /patches           â†’ DashboardLayout > PatchManagerPage
+ *   /team              â†’ DashboardLayout > TeamAssetsPage
+ *   /reports           â†’ DashboardLayout > ReportsPage
+ *   /settings          â†’ DashboardLayout > SettingsPage
+ *   /setup             â†’ DashboardLayout > SetupCheckPage  (pÃ¡gina de diagnÃ³stico)
+ *   *                  â†’ redirige a /dashboard (404 â†’ home)
+ *
+ * En el Paso 3 vamos a agregar:
+ *   /login             â†’ LoginPage (sin layout)
+ *   /register          â†’ RegisterPage (sin layout)
+ *   y un wrapper de "rutas protegidas" alrededor del DashboardLayout.
+ */
+import { createBrowserRouter, Navigate } from 'react-router-dom';
+
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import DashboardPage from '@/pages/Dashboard';
+import VulnerabilityHubPage from '@/pages/VulnerabilityHub';
+import AIPentestingPage from '@/pages/AIPentesting';
+import PatchManagerPage from '@/pages/PatchManager';
+import TeamAssetsPage from '@/pages/TeamAssets';
+import ReportsPage from '@/pages/Reports';
+import SettingsPage from '@/pages/Settings';
+import SetupCheckPage from '@/pages/SetupCheck';
+
+export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <DashboardLayout />,
+    children: [
+      // RedirecciÃ³n de la raÃ­z al dashboard
+      { index: true, element: <Navigate to="/dashboard" replace /> },
+
+      // Rutas principales
+      { path: 'dashboard', element: <DashboardPage /> },
+      { path: 'vulnerabilities', element: <VulnerabilityHubPage /> },
+      { path: 'ai-pentesting', element: <AIPentestingPage /> },
+      { path: 'patches', element: <PatchManagerPage /> },
+      { path: 'team', element: <TeamAssetsPage /> },
+      { path: 'reports', element: <ReportsPage /> },
+      { path: 'settings', element: <SettingsPage /> },
+
+      // PÃ¡gina de diagnÃ³stico (oculta del menÃº)
+      { path: 'setup', element: <SetupCheckPage /> },
+
+      // 404 â†’ redirige al dashboard
+      { path: '*', element: <Navigate to="/dashboard" replace /> },
+    ],
+  },
+]);
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\vite-env.d.ts ---
+
+/// <reference types="vite/client" />
+
+interface ImportMetaEnv {
+  readonly VITE_FIREBASE_API_KEY: string;
+  readonly VITE_FIREBASE_AUTH_DOMAIN: string;
+  readonly VITE_FIREBASE_PROJECT_ID: string;
+  readonly VITE_FIREBASE_STORAGE_BUCKET: string;
+  readonly VITE_FIREBASE_MESSAGING_SENDER_ID: string;
+  readonly VITE_FIREBASE_APP_ID: string;
+  readonly VITE_API_URL: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\components\PagePlaceholder.tsx ---
+
+/**
+ * Componente de pÃ¡gina placeholder.
+ *
+ * Se usa para las 7 secciones mientras no estÃ©n implementadas.
+ * Cuando construyamos cada secciÃ³n real, este componente se reemplaza por
+ * el contenido especÃ­fico (Dashboard real, Vulnerability Hub real, etc.).
+ */
+import { useTranslation } from 'react-i18next';
+
+interface PagePlaceholderProps {
+  /** TÃ­tulo de la pÃ¡gina (ej: "Dashboard") */
+  title: string;
+  /** DescripciÃ³n corta debajo del tÃ­tulo */
+  description: string;
+  /** Emoji que representa la secciÃ³n */
+  icon: string;
+}
+
+export default function PagePlaceholder({ title, description, icon }: PagePlaceholderProps) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="max-w-5xl mx-auto">
+      {/* Encabezado de la pÃ¡gina */}
+      <header className="mb-8">
+        <h1 className="text-2xl lg:text-3xl font-bold mb-2 flex items-center gap-3">
+          <span aria-hidden="true">{icon}</span>
+          <span>{title}</span>
+        </h1>
+        <p className="text-sm lg:text-base text-text-muted">{description}</p>
+      </header>
+
+      {/* Card placeholder "PrÃ³ximamente" */}
+      <div
+        className="
+          bg-bg-secondary border border-border-primary rounded-xl
+          p-8 lg:p-12
+          text-center
+        "
+      >
+        <div className="text-5xl lg:text-6xl mb-4" aria-hidden="true">
+          ðŸš§
+        </div>
+        <h2 className="text-xl lg:text-2xl font-semibold mb-3 text-accent-cyan">
+          {t('common.comingSoon')}
+        </h2>
+        <p className="text-sm lg:text-base text-text-secondary max-w-md mx-auto">
+          {t('common.comingSoonDescription')}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\components\layout\DashboardLayout.tsx ---
+
+/**
+ * Layout principal de la aplicaciÃ³n (despuÃ©s del login).
+ *
+ * Estructura:
+ *   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+ *   â”‚ Sidebar â”‚           Header                â”‚
+ *   â”‚  260px  â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+ *   â”‚         â”‚                                 â”‚
+ *   â”‚         â”‚       <Outlet />                â”‚
+ *   â”‚         â”‚     (pÃ¡gina actual)             â”‚
+ *   â”‚         â”‚                                 â”‚
+ *   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+ *
+ * El <Outlet /> es donde React Router renderiza la pÃ¡gina correspondiente
+ * a la ruta actual (Dashboard, Vulnerability Hub, etc.).
+ */
+import { useEffect, useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+
+import Sidebar from './Sidebar';
+import Header from './Header';
+
+export default function DashboardLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  // Cerrar el sidebar automÃ¡ticamente al cambiar de ruta (importante en mÃ³vil)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  return (
+    <div className="min-h-screen bg-bg-primary text-text-primary">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Header onOpenSidebar={() => setSidebarOpen(true)} />
+
+      {/* Ãrea de contenido principal */}
+      <main
+        className="
+          lg:ml-[260px]
+          mt-16
+          min-h-[calc(100vh-4rem)]
+          p-4 sm:p-6 lg:p-8
+        "
+      >
+        <Outlet />
+      </main>
+    </div>
+  );
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\components\layout\Header.tsx ---
+
+/**
+ * Header superior fijo.
+ *
+ * Contiene:
+ * - BotÃ³n hamburguesa (solo mÃ³vil/tablet) para abrir el sidebar.
+ * - TÃ­tulo de la pÃ¡gina actual (cambia segÃºn la ruta).
+ * - Selector de idioma (es/en).
+ * - Toggle dark/light.
+ * - Avatar de usuario placeholder (en el Paso 3 lo conectamos con el usuario real).
+ */
+import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+
+import { useTheme } from '@/contexts/ThemeContext';
+import { NAV_ITEMS } from '@/types/navigation';
+
+interface HeaderProps {
+  /** Callback para abrir el sidebar en mÃ³vil/tablet */
+  onOpenSidebar: () => void;
+}
+
+export default function Header({ onOpenSidebar }: HeaderProps) {
+  const { t, i18n } = useTranslation();
+  const { theme, toggleTheme } = useTheme();
+  const location = useLocation();
+
+  // Buscar el tÃ­tulo de la pÃ¡gina actual segÃºn la ruta
+  const currentNavItem = NAV_ITEMS.find((item) => location.pathname.startsWith(item.path));
+  const pageTitle = currentNavItem ? t(currentNavItem.labelKey) : t('app.name');
+
+  // Idioma actual normalizado (i18next puede devolver 'es-CL', 'es', etc.)
+  const currentLang = i18n.language.startsWith('en') ? 'en' : 'es';
+
+  return (
+    <header
+      className="
+        fixed top-0 right-0 z-20
+        left-0 lg:left-[260px]
+        h-16
+        bg-bg-secondary border-b border-border-primary
+        flex items-center justify-between
+        px-4 lg:px-8
+      "
+    >
+      {/* Lado izquierdo: botÃ³n hamburguesa (mÃ³vil) + tÃ­tulo */}
+      <div className="flex items-center gap-3 min-w-0">
+        {/* BotÃ³n hamburguesa: solo visible en mÃ³vil/tablet */}
+        <button
+          type="button"
+          onClick={onOpenSidebar}
+          className="
+            lg:hidden
+            w-9 h-9 rounded-md
+            bg-bg-tertiary border border-border-secondary
+            flex items-center justify-center
+            text-lg
+            hover:bg-bg-quaternary transition-colors
+          "
+          aria-label={t('nav.openMenu')}
+        >
+          â˜°
+        </button>
+
+        <h2 className="text-lg lg:text-xl font-semibold truncate">{pageTitle}</h2>
+      </div>
+
+      {/* Lado derecho: idioma, tema, avatar */}
+      <div className="flex items-center gap-2 lg:gap-3">
+        {/* Selector de idioma */}
+        <select
+          value={currentLang}
+          onChange={(e) => i18n.changeLanguage(e.target.value)}
+          aria-label={t('nav.language')}
+          className="
+            bg-bg-tertiary border border-border-secondary rounded-md
+            px-2 py-1.5 lg:px-3 lg:py-2
+            text-xs lg:text-sm
+            cursor-pointer
+            focus:outline-none focus:ring-2 focus:ring-accent-cyan
+          "
+        >
+          <option value="es"> EspaÃ±ol</option>
+          <option value="en"> English</option>
+        </select>
+
+        {/* Toggle de tema */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="
+            w-9 h-9 rounded-md
+            bg-bg-tertiary border border-border-secondary
+            flex items-center justify-center
+            text-base
+            hover:bg-bg-quaternary transition-colors
+            focus:outline-none focus:ring-2 focus:ring-accent-cyan
+          "
+          aria-label={theme === 'dark' ? t('nav.toggleThemeLight') : t('nav.toggleThemeDark')}
+          title={theme === 'dark' ? t('nav.toggleThemeLight') : t('nav.toggleThemeDark')}
+        >
+          {theme === 'dark' ? 'ðŸŒ™' : 'â˜€ï¸'}
+        </button>
+
+        {/* Avatar de usuario (placeholder hasta el Paso 3) */}
+        <div
+          className="
+            w-9 h-9 rounded-full
+            bg-gradient-to-br from-accent-cyan to-accent-blue
+            flex items-center justify-center
+            text-sm font-semibold text-white
+            cursor-pointer
+            hover:opacity-90 transition-opacity
+          "
+          aria-label="User profile"
+          title="User profile"
+        >
+          U
+        </div>
+      </div>
+    </header>
+  );
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\components\layout\Sidebar.tsx ---
+
+/**
+ * Sidebar de navegaciÃ³n.
+ *
+ * Comportamiento:
+ * - Desktop (>=1024px): siempre visible, fijo a la izquierda, 260px de ancho.
+ * - MÃ³vil/Tablet (<1024px): oculto por default, se muestra como drawer cuando se abre.
+ *
+ * El estado abierto/cerrado en mÃ³vil se controla desde el componente padre
+ * (DashboardLayout) a travÃ©s de las props `isOpen` y `onClose`.
+ */
+import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+
+import { NAV_ITEMS } from '@/types/navigation';
+
+interface SidebarProps {
+  /** Si el sidebar estÃ¡ abierto (solo aplica en mÃ³vil/tablet) */
+  isOpen: boolean;
+  /** Callback para cerrar el sidebar (al hacer click en un item en mÃ³vil) */
+  onClose: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      {/* Overlay oscuro detrÃ¡s del sidebar (solo mÃ³vil/tablet, solo cuando estÃ¡ abierto) */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`
+          fixed left-0 top-0 z-40 h-screen w-[260px]
+          bg-bg-secondary border-r border-border-primary
+          flex flex-col
+          transition-transform duration-300 ease-in-out
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0
+        `}
+        aria-label="Sidebar navigation"
+      >
+        {/* Logo */}
+        <div className="px-6 py-6 border-b border-border-primary">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-md bg-gradient-to-br from-accent-cyan to-accent-blue flex items-center justify-center text-lg flex-shrink-0">
+              ðŸ›¡ï¸
+            </div>
+            <h1 className="text-xl font-bold text-accent-cyan truncate">
+              {t('app.name')}
+            </h1>
+          </div>
+        </div>
+
+        {/* Items de navegaciÃ³n */}
+        <nav className="flex-1 py-4 overflow-y-auto" aria-label="Main navigation">
+          {NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              onClick={onClose}
+              className={({ isActive }) => `
+                flex items-center gap-3 px-6 py-3
+                text-sm font-medium
+                border-l-[3px]
+                transition-colors duration-150
+                ${
+                  isActive
+                    ? 'bg-bg-tertiary text-accent-cyan border-accent-cyan'
+                    : 'text-text-muted border-transparent hover:bg-bg-tertiary hover:text-text-primary'
+                }
+              `}
+            >
+              <span className="text-lg flex-shrink-0" aria-hidden="true">
+                {item.icon}
+              </span>
+              <span className="truncate">{t(item.labelKey)}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Footer del sidebar con la versiÃ³n */}
+        <div className="px-6 py-4 border-t border-border-primary">
+          <p className="text-xs text-text-muted">v0.1.0 â€” Sprint 1</p>
+        </div>
+      </aside>
+    </>
+  );
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\contexts\ThemeContext.tsx ---
+
+/**
+ * Context de tema visual (dark/light).
+ *
+ * Maneja:
+ * - El tema actual (dark por default).
+ * - FunciÃ³n para alternar entre temas.
+ * - Persistencia en localStorage.
+ * - AplicaciÃ³n de la clase 'dark' o 'light' al <html> para que las CSS variables cambien.
+ */
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react';
+
+type Theme = 'dark' | 'light';
+
+interface ThemeContextValue {
+  theme: Theme;
+  toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
+}
+
+const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
+
+const STORAGE_KEY = 'dani-eth-theme';
+
+function getInitialTheme(): Theme {
+  if (typeof window === 'undefined') return 'dark';
+  const saved = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
+  return saved === 'light' || saved === 'dark' ? saved : 'dark';
+}
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+
+  // Aplicar la clase al <html> cuando cambia el tema
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('dark', 'light');
+    root.classList.add(theme);
+    window.localStorage.setItem(STORAGE_KEY, theme);
+  }, [theme]);
+
+  const setTheme = (newTheme: Theme) => setThemeState(newTheme);
+  const toggleTheme = () => setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+export function useTheme(): ThemeContextValue {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme debe usarse dentro de un ThemeProvider');
+  }
+  return context;
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\lib\api.ts ---
+
+/**
+ * Cliente HTTP para hablar con el backend FastAPI.
+ *
+ * Incluye un interceptor que automÃ¡ticamente:
+ * - Agrega el token JWT de Firebase a cada request.
+ * - Maneja errores 401 (token expirado) re-pidiendo el token.
+ */
+import axios, { type AxiosInstance } from 'axios';
+import { auth } from './firebase';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+export const apiClient: AxiosInstance = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 30000, // 30s
+});
+
+// Interceptor de request: agrega el token JWT de Firebase si hay usuario logueado
+apiClient.interceptors.request.use(
+  async (config) => {
+    const user = auth.currentUser;
+    if (user) {
+      const token = await user.getIdToken();
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Interceptor de response: log de errores
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      console.warn('[API] Token expirado o invÃ¡lido');
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default apiClient;
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\lib\firebase.ts ---
+
+/**
+ * InicializaciÃ³n de Firebase en el frontend.
+ *
+ * Lee la configuraciÃ³n desde las variables de entorno (VITE_FIREBASE_*)
+ * y expone las instancias de Auth y Firestore para el resto de la app.
+ */
+import { initializeApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+};
+
+// Validar que todas las variables estÃ©n configuradas
+const missingVars = Object.entries(firebaseConfig)
+  .filter(([, value]) => !value)
+  .map(([key]) => key);
+
+if (missingVars.length > 0) {
+  console.error(
+    `[Firebase] Variables de entorno faltantes: ${missingVars.join(', ')}. ` +
+      'Verificar el archivo frontend/.env'
+  );
+}
+
+// Inicializar Firebase
+export const firebaseApp: FirebaseApp = initializeApp(firebaseConfig);
+
+// Servicios principales
+export const auth: Auth = getAuth(firebaseApp);
+export const db: Firestore = getFirestore(firebaseApp);
+
+// Exportar por default tambiÃ©n para conveniencia
+export default firebaseApp;
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\lib\i18n.ts ---
+
+/**
+ * ConfiguraciÃ³n de internacionalizaciÃ³n (i18n).
+ *
+ * Esto cumple con el requisito de Alloxentric: ningÃºn string hardcodeado en el cÃ³digo.
+ * Para agregar un nuevo idioma:
+ *   1. Crear src/locales/<cÃ³digo>.json con las mismas claves.
+ *   2. Importarlo y agregarlo a `resources` abajo.
+ */
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
+
+import esTranslations from '@/locales/es.json';
+import enTranslations from '@/locales/en.json';
+
+void i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources: {
+      es: { translation: esTranslations },
+      en: { translation: enTranslations },
+    },
+    fallbackLng: 'es',
+    debug: false,
+    interpolation: {
+      escapeValue: false, // React ya escapa por default
+    },
+    detection: {
+      // Orden en que se intenta detectar el idioma
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage'],
+    },
+  });
+
+export default i18n;
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\locales\en.json ---
+
+{
+  "app": {
+    "name": "DANI-ETH",
+    "tagline": "Automated Ethical Hacking Platform"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "comingSoon": "Coming soon",
+    "comingSoonDescription": "This section is under development. We'll build it in the upcoming sprints."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "vulnerabilities": "Vulnerability Hub",
+    "aiPentesting": "AI Pentesting",
+    "patches": "Patch Manager",
+    "team": "Team & Assets",
+    "reports": "Reports",
+    "settings": "Settings",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "toggleTheme": "Toggle theme",
+    "toggleThemeDark": "Switch to dark mode",
+    "toggleThemeLight": "Switch to light mode",
+    "language": "Language"
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "Security command center â€” metrics and vulnerabilities in real time"
+    },
+    "vulnerabilities": {
+      "title": "Vulnerability Hub",
+      "description": "Centralized management of detected vulnerabilities"
+    },
+    "aiPentesting": {
+      "title": "AI Pentesting Engine",
+      "description": "Autonomous penetration testing engine powered by artificial intelligence"
+    },
+    "patches": {
+      "title": "Patch Manager",
+      "description": "Patch and remediation management across infrastructure"
+    },
+    "team": {
+      "title": "Team & Assets",
+      "description": "Team, assignment and infrastructure asset management"
+    },
+    "reports": {
+      "title": "Reports",
+      "description": "Executive and technical security report generation"
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "System configuration and team preferences"
+    }
+  },
+  "setup": {
+    "title": "Verifying setup",
+    "checkingBackend": "Connecting to backend...",
+    "backendOk": "Backend connected",
+    "backendError": "Could not connect to backend",
+    "firebaseOk": "Firebase configured",
+    "firebaseError": "Firebase is not configured",
+    "ready": "All set. The application is running correctly.",
+    "nextSteps": "Next steps",
+    "step2": "Implement layout and navigation",
+    "step3": "Implement authentication system",
+    "goToDashboard": "Go to Dashboard"
+  }
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\locales\es.json ---
+
+{
+  "app": {
+    "name": "DANI-ETH",
+    "tagline": "Plataforma de Ethical Hacking Automatizado"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "search": "Buscar",
+    "comingSoon": "PrÃ³ximamente",
+    "comingSoonDescription": "Esta secciÃ³n estÃ¡ en desarrollo. La construiremos en los siguientes sprints."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "vulnerabilities": "Vulnerability Hub",
+    "aiPentesting": "AI Pentesting",
+    "patches": "Patch Manager",
+    "team": "Team & Assets",
+    "reports": "Reports",
+    "settings": "Settings",
+    "openMenu": "Abrir menÃº",
+    "closeMenu": "Cerrar menÃº",
+    "toggleTheme": "Cambiar tema",
+    "toggleThemeDark": "Cambiar a modo oscuro",
+    "toggleThemeLight": "Cambiar a modo claro",
+    "language": "Idioma"
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "Centro de comando de seguridad â€” mÃ©tricas y vulnerabilidades en tiempo real"
+    },
+    "vulnerabilities": {
+      "title": "Vulnerability Hub",
+      "description": "GestiÃ³n centralizada de vulnerabilidades detectadas"
+    },
+    "aiPentesting": {
+      "title": "AI Pentesting Engine",
+      "description": "Motor de pruebas de penetraciÃ³n autÃ³nomas con inteligencia artificial"
+    },
+    "patches": {
+      "title": "Patch Manager",
+      "description": "GestiÃ³n de parches y remediaciones por infraestructura"
+    },
+    "team": {
+      "title": "Team & Assets",
+      "description": "GestiÃ³n de equipos, asignaciones y activos de infraestructura"
+    },
+    "reports": {
+      "title": "Reports",
+      "description": "GeneraciÃ³n de reportes ejecutivos y tÃ©cnicos de seguridad"
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "ConfiguraciÃ³n del sistema y preferencias del equipo"
+    }
+  },
+  "setup": {
+    "title": "Verificando configuraciÃ³n",
+    "checkingBackend": "Conectando con el backend...",
+    "backendOk": "Backend conectado",
+    "backendError": "No se pudo conectar con el backend",
+    "firebaseOk": "Firebase configurado",
+    "firebaseError": "Firebase no estÃ¡ configurado",
+    "ready": "Todo listo. La aplicaciÃ³n estÃ¡ funcionando correctamente.",
+    "nextSteps": "PrÃ³ximos pasos",
+    "step2": "Implementar el layout y la navegaciÃ³n",
+    "step3": "Implementar el sistema de autenticaciÃ³n",
+    "goToDashboard": "Ir al Dashboard"
+  }
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\pages\AIPentesting.tsx ---
+
+import { useTranslation } from 'react-i18next';
+import PagePlaceholder from '@/components/PagePlaceholder';
+
+export default function AIPentestingPage() {
+  const { t } = useTranslation();
+  return (
+    <PagePlaceholder
+      icon="ðŸ¤–"
+      title={t('pages.aiPentesting.title')}
+      description={t('pages.aiPentesting.description')}
+    />
+  );
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\pages\Dashboard.tsx ---
+
+import { useTranslation } from 'react-i18next';
+import PagePlaceholder from '@/components/PagePlaceholder';
+
+export default function DashboardPage() {
+  const { t } = useTranslation();
+  return (
+    <PagePlaceholder
+      icon="ðŸ“Š"
+      title={t('pages.dashboard.title')}
+      description={t('pages.dashboard.description')}
+    />
+  );
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\pages\PatchManager.tsx ---
+
+import { useTranslation } from 'react-i18next';
+import PagePlaceholder from '@/components/PagePlaceholder';
+
+export default function PatchManagerPage() {
+  const { t } = useTranslation();
+  return (
+    <PagePlaceholder
+      icon="ðŸ”§"
+      title={t('pages.patches.title')}
+      description={t('pages.patches.description')}
+    />
+  );
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\pages\Reports.tsx ---
+
+import { useTranslation } from 'react-i18next';
+import PagePlaceholder from '@/components/PagePlaceholder';
+
+export default function ReportsPage() {
+  const { t } = useTranslation();
+  return (
+    <PagePlaceholder
+      icon="ðŸ“ˆ"
+      title={t('pages.reports.title')}
+      description={t('pages.reports.description')}
+    />
+  );
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\pages\Settings.tsx ---
+
+import { useTranslation } from 'react-i18next';
+import PagePlaceholder from '@/components/PagePlaceholder';
+
+export default function SettingsPage() {
+  const { t } = useTranslation();
+  return (
+    <PagePlaceholder
+      icon="âš™ï¸"
+      title={t('pages.settings.title')}
+      description={t('pages.settings.description')}
+    />
+  );
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\pages\SetupCheck.tsx ---
+
+/**
+ * PÃ¡gina de verificaciÃ³n de setup.
+ *
+ * Accesible vÃ­a /setup. Sirve para verificar que:
+ * - El backend estÃ¡ accesible.
+ * - Firebase estÃ¡ conectado en ambos lados.
+ *
+ * En el Paso 1 era la pÃ¡gina principal. Ahora es una pÃ¡gina de diagnÃ³stico.
+ */
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+
+import apiClient from '@/lib/api';
+
+interface HealthCheck {
+  status: string;
+  app_name: string;
+  app_env: string;
+  firebase: string;
+  project_id: string | null;
+}
+
+type CheckState = 'pending' | 'ok' | 'error';
+
+export default function SetupCheckPage() {
+  const { t } = useTranslation();
+
+  const [backendCheck, setBackendCheck] = useState<CheckState>('pending');
+  const [firebaseCheck, setFirebaseCheck] = useState<CheckState>('pending');
+  const [healthData, setHealthData] = useState<HealthCheck | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  useEffect(() => {
+    apiClient
+      .get<HealthCheck>('/api/v1/health')
+      .then((response) => {
+        setBackendCheck('ok');
+        setHealthData(response.data);
+        setFirebaseCheck(response.data.firebase === 'connected' ? 'ok' : 'error');
+      })
+      .catch((error) => {
+        setBackendCheck('error');
+        setFirebaseCheck('error');
+        setErrorMessage(error.message);
+      });
+  }, []);
+
+  const StatusIcon = ({ state }: { state: CheckState }) => {
+    if (state === 'pending') return <span className="text-text-muted">â³</span>;
+    if (state === 'ok') return <span className="text-severity-low">âœ…</span>;
+    return <span className="text-severity-critical">âŒ</span>;
+  };
+
+  const allOk = backendCheck === 'ok' && firebaseCheck === 'ok';
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <header className="mb-8">
+        <h1 className="text-2xl lg:text-3xl font-bold mb-2">{t('setup.title')}</h1>
+        <p className="text-sm text-text-muted">
+          Verifica el estado de las conexiones del sistema.
+        </p>
+      </header>
+
+      <div className="bg-bg-secondary border border-border-primary rounded-xl p-6 mb-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 p-4 bg-bg-tertiary rounded-lg">
+            <StatusIcon state={backendCheck} />
+            <div>
+              <p className="font-medium">
+                {backendCheck === 'ok' ? t('setup.backendOk') : t('setup.checkingBackend')}
+              </p>
+              {healthData && (
+                <p className="text-xs text-text-muted mt-1">
+                  {healthData.app_name} â€¢ {healthData.app_env}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-4 bg-bg-tertiary rounded-lg">
+            <StatusIcon state={firebaseCheck} />
+            <div>
+              <p className="font-medium">
+                {firebaseCheck === 'ok' ? t('setup.firebaseOk') : t('setup.firebaseError')}
+              </p>
+              {healthData?.project_id && (
+                <p className="text-xs text-text-muted mt-1">
+                  Project ID: {healthData.project_id}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {errorMessage && (
+          <div className="mt-4 p-3 bg-severity-critical/10 border border-severity-critical/30 rounded-lg text-sm text-severity-critical">
+            <strong>Error:</strong> {errorMessage}
+          </div>
+        )}
+      </div>
+
+      {allOk && (
+        <div className="bg-severity-low/10 border border-severity-low/30 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-severity-low mb-3">
+            âœ“ {t('setup.ready')}
+          </h3>
+          <Link
+            to="/dashboard"
+            className="
+              inline-block px-4 py-2 mt-2
+              bg-gradient-to-r from-accent-cyan to-accent-blue
+              text-white text-sm font-medium rounded-md
+              hover:opacity-90 transition-opacity
+            "
+          >
+            {t('setup.goToDashboard')} â†’
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\pages\TeamAssets.tsx ---
+
+import { useTranslation } from 'react-i18next';
+import PagePlaceholder from '@/components/PagePlaceholder';
+
+export default function TeamAssetsPage() {
+  const { t } = useTranslation();
+  return (
+    <PagePlaceholder
+      icon="ðŸ‘¥"
+      title={t('pages.team.title')}
+      description={t('pages.team.description')}
+    />
+  );
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\pages\VulnerabilityHub.tsx ---
+
+import { useTranslation } from 'react-i18next';
+import PagePlaceholder from '@/components/PagePlaceholder';
+
+export default function VulnerabilityHubPage() {
+  const { t } = useTranslation();
+  return (
+    <PagePlaceholder
+      icon="ðŸ”"
+      title={t('pages.vulnerabilities.title')}
+      description={t('pages.vulnerabilities.description')}
+    />
+  );
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\styles\globals.css ---
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================================================================
+   Sistema de tokens visuales DANI-ETH
+   Todos los colores viven en CSS variables para que el toggle dark/light
+   funcione automÃ¡ticamente en toda la app.
+   ======================================================================== */
+
+:root {
+  /* ---- Tema dark (default, basado en el prototipo de la empresa) ---- */
+  --bg-primary: #0a0e17;
+  --bg-secondary: #12161f;
+  --bg-tertiary: #1a1f2e;
+  --bg-quaternary: #242938;
+
+  --border-primary: #1e2533;
+  --border-secondary: #2a3144;
+
+  --text-primary: #e4e6eb;
+  --text-secondary: #b8bcc8;
+  --text-muted: #8b92a8;
+
+  --accent-cyan: #00d4ff;
+  --accent-blue: #0066ff;
+
+  /* Severidades (colores semÃ¡nticos) */
+  --severity-critical: #ef4444;
+  --severity-high: #fb923c;
+  --severity-medium: #f59e0b;
+  --severity-low: #10b981;
+
+  /* Sombras */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+html.light {
+  /* ---- Tema light (alternativo) ---- */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --bg-quaternary: #e2e8f0;
+
+  --border-primary: #e2e8f0;
+  --border-secondary: #cbd5e1;
+
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+
+  --accent-cyan: #0891b2;
+  --accent-blue: #1d4ed8;
+
+  --severity-critical: #dc2626;
+  --severity-high: #ea580c;
+  --severity-medium: #d97706;
+  --severity-low: #059669;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* ========================================================================
+   Reset y base
+   ======================================================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Scrollbar personalizado para tema dark */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+--- ARCHIVO: C:\Users\roron\Documents\UNIVERSIDAD\gestion\dani-eth-paso1\dani-eth\frontend\src\types\navigation.ts ---
+
+/**
+ * Tipos compartidos del sistema de navegaciÃ³n.
+ */
+
+export interface NavItem {
+  /** Path al que navega (URL) */
+  path: string;
+  /** Clave de traducciÃ³n para el label en i18n */
+  labelKey: string;
+  /** Emoji que se muestra como icono */
+  icon: string;
+}
+
+/**
+ * ConfiguraciÃ³n central de las 7 secciones de la app.
+ * Si querÃ©s agregar/quitar/reordenar secciones, este es el Ãºnico lugar.
+ */
+export const NAV_ITEMS: NavItem[] = [
+  { path: '/dashboard',       labelKey: 'nav.dashboard',       icon: 'ðŸ“Š' },
+  { path: '/vulnerabilities', labelKey: 'nav.vulnerabilities', icon: 'ðŸ”' },
+  { path: '/ai-pentesting',   labelKey: 'nav.aiPentesting',    icon: 'ðŸ¤–' },
+  { path: '/patches',         labelKey: 'nav.patches',         icon: 'ðŸ”§' },
+  { path: '/team',            labelKey: 'nav.team',            icon: 'ðŸ‘¥' },
+  { path: '/reports',         labelKey: 'nav.reports',         icon: 'ðŸ“ˆ' },
+  { path: '/settings',        labelKey: 'nav.settings',        icon: 'âš™ï¸' },
+];

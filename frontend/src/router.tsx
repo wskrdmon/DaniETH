@@ -1,26 +1,18 @@
 /**
- * Configuración central de rutas con React Router.
+ * Router central con rutas públicas y protegidas.
  *
  * Estructura:
- *   /                  → redirige a /dashboard
- *   /dashboard         → DashboardLayout > DashboardPage
- *   /vulnerabilities   → DashboardLayout > VulnerabilityHubPage
- *   /ai-pentesting     → DashboardLayout > AIPentestingPage
- *   /patches           → DashboardLayout > PatchManagerPage
- *   /team              → DashboardLayout > TeamAssetsPage
- *   /reports           → DashboardLayout > ReportsPage
- *   /settings          → DashboardLayout > SettingsPage
- *   /setup             → DashboardLayout > SetupCheckPage  (página de diagnóstico)
- *   *                  → redirige a /dashboard (404 → home)
- *
- * En el Paso 3 vamos a agregar:
- *   /login             → LoginPage (sin layout)
- *   /register          → RegisterPage (sin layout)
- *   y un wrapper de "rutas protegidas" alrededor del DashboardLayout.
+ *   /login     → LoginPage     (público)
+ *   /register  → RegisterPage  (público)
+ *   /          → ProtectedRoute > DashboardLayout > páginas privadas
  */
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+
+import LoginPage from './pages/Login';
+import RegisterPage from './pages/Register';
 import DashboardPage from '@/pages/Dashboard';
 import VulnerabilityHubPage from '@/pages/VulnerabilityHub';
 import AIPentestingPage from '@/pages/AIPentesting';
@@ -31,27 +23,30 @@ import SettingsPage from '@/pages/Settings';
 import SetupCheckPage from '@/pages/SetupCheck';
 
 export const router = createBrowserRouter([
+  // ── Rutas públicas ────────────────────────────────────────────────────────
+  { path: '/login',    element: <LoginPage /> },
+  { path: '/register', element: <RegisterPage /> },
+
+  // ── Rutas protegidas ──────────────────────────────────────────────────────
   {
-    path: '/',
-    element: <DashboardLayout />,
+    element: <ProtectedRoute />,   // ← Guarda de autenticación
     children: [
-      // Redirección de la raíz al dashboard
-      { index: true, element: <Navigate to="/dashboard" replace /> },
-
-      // Rutas principales
-      { path: 'dashboard', element: <DashboardPage /> },
-      { path: 'vulnerabilities', element: <VulnerabilityHubPage /> },
-      { path: 'ai-pentesting', element: <AIPentestingPage /> },
-      { path: 'patches', element: <PatchManagerPage /> },
-      { path: 'team', element: <TeamAssetsPage /> },
-      { path: 'reports', element: <ReportsPage /> },
-      { path: 'settings', element: <SettingsPage /> },
-
-      // Página de diagnóstico (oculta del menú)
-      { path: 'setup', element: <SetupCheckPage /> },
-
-      // 404 → redirige al dashboard
-      { path: '*', element: <Navigate to="/dashboard" replace /> },
+      {
+        path: '/',
+        element: <DashboardLayout />,
+        children: [
+          { index: true, element: <Navigate to="/dashboard" replace /> },
+          { path: 'dashboard',       element: <DashboardPage /> },
+          { path: 'vulnerabilities', element: <VulnerabilityHubPage /> },
+          { path: 'ai-pentesting',   element: <AIPentestingPage /> },
+          { path: 'patches',         element: <PatchManagerPage /> },
+          { path: 'team',            element: <TeamAssetsPage /> },
+          { path: 'reports',         element: <ReportsPage /> },
+          { path: 'settings',        element: <SettingsPage /> },
+          { path: 'setup',           element: <SetupCheckPage /> },
+          { path: '*',               element: <Navigate to="/dashboard" replace /> },
+        ],
+      },
     ],
   },
 ]);
