@@ -1,18 +1,16 @@
 /**
  * Componente raíz de la aplicación.
- * Envuelve toda la app con los providers necesarios (tema, etc.).
+ * Envuelve toda la app con los providers necesarios y monta el router.
  */
+import { RouterProvider } from 'react-router-dom';
+
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import SetupCheckPage from '@/pages/SetupCheck';
+import { router } from '@/router';
 
 export default function App() {
   return (
     <ThemeProvider>
-      {/*
-        En el Paso 1 mostramos solo la página de verificación de setup.
-        En el Paso 2 vamos a agregar React Router con las rutas reales.
-      */}
-      <SetupCheckPage />
+      <RouterProvider router={router} />
     </ThemeProvider>
   );
 }

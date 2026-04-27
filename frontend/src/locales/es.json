@@ -10,7 +10,54 @@
     "confirm": "Confirmar",
     "delete": "Eliminar",
     "edit": "Editar",
-    "search": "Buscar"
+    "search": "Buscar",
+    "comingSoon": "Próximamente",
+    "comingSoonDescription": "Esta sección está en desarrollo. La construiremos en los siguientes sprints."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "vulnerabilities": "Vulnerability Hub",
+    "aiPentesting": "AI Pentesting",
+    "patches": "Patch Manager",
+    "team": "Team & Assets",
+    "reports": "Reports",
+    "settings": "Settings",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "toggleTheme": "Cambiar tema",
+    "toggleThemeDark": "Cambiar a modo oscuro",
+    "toggleThemeLight": "Cambiar a modo claro",
+    "language": "Idioma"
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "Centro de comando de seguridad — métricas y vulnerabilidades en tiempo real"
+    },
+    "vulnerabilities": {
+      "title": "Vulnerability Hub",
+      "description": "Gestión centralizada de vulnerabilidades detectadas"
+    },
+    "aiPentesting": {
+      "title": "AI Pentesting Engine",
+      "description": "Motor de pruebas de penetración autónomas con inteligencia artificial"
+    },
+    "patches": {
+      "title": "Patch Manager",
+      "description": "Gestión de parches y remediaciones por infraestructura"
+    },
+    "team": {
+      "title": "Team & Assets",
+      "description": "Gestión de equipos, asignaciones y activos de infraestructura"
+    },
+    "reports": {
+      "title": "Reports",
+      "description": "Generación de reportes ejecutivos y técnicos de seguridad"
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Configuración del sistema y preferencias del equipo"
+    }
   },
   "setup": {
     "title": "Verificando configuración",
@@ -22,6 +69,7 @@
     "ready": "Todo listo. La aplicación está funcionando correctamente.",
     "nextSteps": "Próximos pasos",
     "step2": "Implementar el layout y la navegación",
-    "step3": "Implementar el sistema de autenticación"
+    "step3": "Implementar el sistema de autenticación",
+    "goToDashboard": "Ir al Dashboard"
   }
 }
