@@ -1,0 +1,27 @@
+{
+  "app": {
+    "name": "DANI-ETH",
+    "tagline": "Plataforma de Ethical Hacking Automatizado"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "search": "Buscar"
+  },
+  "setup": {
+    "title": "Verificando configuración",
+    "checkingBackend": "Conectando con el backend...",
+    "backendOk": "Backend conectado",
+    "backendError": "No se pudo conectar con el backend",
+    "firebaseOk": "Firebase configurado",
+    "firebaseError": "Firebase no está configurado",
+    "ready": "Todo listo. La aplicación está funcionando correctamente.",
+    "nextSteps": "Próximos pasos",
+    "step2": "Implementar el layout y la navegación",
+    "step3": "Implementar el sistema de autenticación"
+  }
+}
