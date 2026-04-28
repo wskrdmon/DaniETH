@@ -47,7 +47,7 @@
       "description": "Gestión de parches y remediaciones por infraestructura"
     },
     "team": {
-      "title": "Team & Assets",
+      "title": "Gestión de Equipos y Activos",
       "description": "Gestión de equipos, asignaciones y activos de infraestructura"
     },
     "reports": {
@@ -57,6 +57,92 @@
     "settings": {
       "title": "Settings",
       "description": "Configuración del sistema y preferencias del equipo"
+    },
+    "teamPage": {
+      "subtitle": "Gestiona equipos de seguridad, distribución de carga y acceso a la aplicación",
+      "btnAddMember": "+ Agregar Miembro",
+      "btnAnalytics": "📊 Análisis de Equipo",
+      "btnSyncLdap": "🔄 Sync desde LDAP",
+      "stats": {
+        "totalMembers": "TOTAL MIEMBROS",
+        "activeTasks": "TAREAS ACTIVAS",
+        "overloaded": "SOBRECARGADOS",
+        "available": "DISPONIBLES",
+        "avgCompletion": "TIEMPO PROMEDIO",
+        "teams": "equipos",
+        "avgPerMember": "Prom. {{val}} por miembro",
+        "moreThan5": ">5 tareas c/u",
+        "lessThan3": "<3 tareas c/u",
+        "perTask": "Por tarea"
+      },
+      "member": {
+        "idLabel": "ID:",
+        "teamLead": "Team Lead",
+        "activeTasks": "{{count}} tarea activa",
+        "activeTasks_plural": "{{count}} tareas activas",
+        "completedMonth": "Completadas Este Mes",
+        "avgCompletion": "Tiempo Prom. Completado",
+        "viewReassign": "Ver Tareas y Reasignar",
+        "workload": {
+          "label": "Carga Actual",
+          "light": "Carga Ligera",
+          "medium": "Carga Media",
+          "overloaded": "Sobrecargado"
+        },
+        "permissions": {
+          "title": "🔒 Permisos de Aplicación",
+          "viewDashboard": "📊 Ver Dashboard",
+          "runScans": "🔍 Ejecutar Scans",
+          "vulnerabilityHub": "⚠ Vulnerability Hub - Acceso Total",
+          "managePatches": "✏ Gestionar Parches",
+          "teamManagement": "👥 Gestión de Equipo",
+          "adminSettings": "⚙ Configuración Admin"
+        },
+        "notifications": {
+          "title": "🔔 Configuración de Notificaciones",
+          "email": "✉ Email",
+          "slack": "💬 Slack",
+          "sms": "📱 SMS (Solo Críticos)",
+          "inApp": "🔔 Notificaciones In-App",
+          "notifyWhen": "Notificar Cuando:",
+          "taskAssigned": "Tarea asignada",
+          "criticalVuln": "Vulnerabilidades críticas",
+          "dailyDigest": "Resumen diario"
+        },
+        "actions": {
+          "edit": "✏ Editar",
+          "delete": "🗑",
+          "moveTeam": "🔄 Mover Equipo"
+        }
+      },
+      "modal": {
+        "addTitle": "+ Agregar Miembro al Equipo",
+        "fieldName": "Nombre Completo",
+        "fieldNamePlaceholder": "Ej: John Smith",
+        "fieldEmail": "Email",
+        "fieldEmailPlaceholder": "john@empresa.com",
+        "fieldRole": "Rol",
+        "fieldRolePlaceholder": "Ej: Network Engineer",
+        "fieldTeamLead": "Es Team Lead",
+        "btnAdd": "Agregar Miembro",
+        "btnAdding": "Guardando...",
+        "errorRequired": "Nombre, email y rol son obligatorios.",
+        "errorApi": "Error al crear el miembro."
+      },
+      "empty": {
+        "noTeams": "No hay equipos creados todavía",
+        "noTeamsHint": "Los equipos se crean desde la consola de Firebase o vía API.",
+        "noMembers": "Este equipo no tiene miembros aún.",
+        "btnFirstMember": "+ Agregar Primer Miembro"
+      },
+      "error": {
+        "loadFailed": "No se pudo cargar la información del equipo.",
+        "loadHint": "Verifica la conexión con el backend.",
+        "retry": "Reintentar",
+        "deleteFailed": "Error al eliminar el miembro.",
+        "confirmDelete": "¿Eliminar este miembro del equipo?"
+      },
+      "loading": "Cargando Team & Assets..."
     }
   },
   "setup": {

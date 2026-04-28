@@ -57,6 +57,92 @@
     "settings": {
       "title": "Settings",
       "description": "System configuration and team preferences"
+    },
+    "teamPage": {
+      "subtitle": "Manage security teams, workload distribution, and application access",
+      "btnAddMember": "+ Add Team Member",
+      "btnAnalytics": "📊 Team Analytics",
+      "btnSyncLdap": "🔄 Sync from LDAP",
+      "stats": {
+        "totalMembers": "TOTAL MEMBERS",
+        "activeTasks": "ACTIVE TASKS",
+        "overloaded": "OVERLOADED",
+        "available": "AVAILABLE",
+        "avgCompletion": "AVG COMPLETION",
+        "teams": "teams",
+        "avgPerMember": "Avg {{val}} per member",
+        "moreThan5": ">5 tasks each",
+        "lessThan3": "<3 tasks each",
+        "perTask": "Per task"
+      },
+      "member": {
+        "idLabel": "ID:",
+        "teamLead": "Team Lead",
+        "activeTasks": "{{count}} active task",
+        "activeTasks_plural": "{{count}} active tasks",
+        "completedMonth": "Completed This Month",
+        "avgCompletion": "Avg Completion Time",
+        "viewReassign": "View All Tasks & Reassign",
+        "workload": {
+          "label": "Current Workload",
+          "light": "Light Load",
+          "medium": "Medium Load",
+          "overloaded": "Overloaded"
+        },
+        "permissions": {
+          "title": "🔒 Application Permissions",
+          "viewDashboard": "📊 View Dashboard",
+          "runScans": "🔍 Run Scans",
+          "vulnerabilityHub": "⚠ Vulnerability Hub - Full Access",
+          "managePatches": "✏ Manage Patches",
+          "teamManagement": "👥 Team Management",
+          "adminSettings": "⚙ Admin Settings"
+        },
+        "notifications": {
+          "title": "🔔 Notification Settings",
+          "email": "✉ Email",
+          "slack": "💬 Slack",
+          "sms": "📱 SMS (Critical only)",
+          "inApp": "🔔 In-App Notifications",
+          "notifyWhen": "Notify When:",
+          "taskAssigned": "Task assigned",
+          "criticalVuln": "Critical vulnerabilities",
+          "dailyDigest": "Daily digest"
+        },
+        "actions": {
+          "edit": "✏ Edit",
+          "delete": "🗑",
+          "moveTeam": "🔄 Move Team"
+        }
+      },
+      "modal": {
+        "addTitle": "+ Add Team Member",
+        "fieldName": "Full Name",
+        "fieldNamePlaceholder": "e.g. John Smith",
+        "fieldEmail": "Email",
+        "fieldEmailPlaceholder": "john@company.com",
+        "fieldRole": "Role",
+        "fieldRolePlaceholder": "e.g. Network Engineer",
+        "fieldTeamLead": "Is Team Lead",
+        "btnAdd": "Add Member",
+        "btnAdding": "Saving...",
+        "errorRequired": "Name, email and role are required.",
+        "errorApi": "Error creating the member."
+      },
+      "empty": {
+        "noTeams": "No teams created yet",
+        "noTeamsHint": "Teams are created from the Firebase console or via API.",
+        "noMembers": "This team has no members yet.",
+        "btnFirstMember": "+ Add First Member"
+      },
+      "error": {
+        "loadFailed": "Could not load team information.",
+        "loadHint": "Please check the backend connection.",
+        "retry": "Retry",
+        "deleteFailed": "Error deleting member.",
+        "confirmDelete": "Delete this team member?"
+      },
+      "loading": "Loading Team & Assets..."
     }
   },
   "setup": {
