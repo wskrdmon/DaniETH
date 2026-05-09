@@ -8,7 +8,7 @@ import type { Team, TeamMember, TeamStats } from '@/types/team';
 import StatCard        from '@/components/team/StatCard';
 import MemberCard      from '@/components/team/MemberCard';
 import AddMemberModal  from '@/components/team/AddMemberModal';
-
+/*
 const TEAM_SEED = [
   { id: "1", name: "Elena 'Nyx' Rodríguez", role: "Lead Pentester", team: "Red", status: "active", workload: 85, email: "elena@dani-eth.com" },
   { id: "2", name: "Marco Chen", role: "Exploit Developer", team: "Red", status: "active", workload: 40, email: "marco@dani-eth.com" },
@@ -16,7 +16,7 @@ const TEAM_SEED = [
   { id: "4", name: "Javier López", role: "Incident Responder", team: "Blue", status: "busy", workload: 100, email: "javier@dani-eth.com" },
   { id: "5", name: "Ana Valdés", role: "Cloud Security Engineer", team: "Blue", status: "offline", workload: 0, email: "ana@dani-eth.com" }
 ];
-
+*/
 
 // ── Spinner centralizado ───────────────────────────────────────────────────────
 function LoadingSpinner({ message }: { message: string }) {
@@ -57,7 +57,7 @@ export default function TeamAssetsPage() {
 
   const [stats,      setStats]      = useState<TeamStats | null>(null);
   const [teams,      setTeams]      = useState<Team[]>([]);
-  const [members,    setMembers]    = useState<TeamMember[]>(TEAM_SEED as unknown as TeamMember[]);
+  const [members,    setMembers]    = useState<TeamMember[]>([]);
   const [activeTab,  setActiveTab]  = useState<string>('');
   const [loading,    setLoading]    = useState(true);
   const [loadingMembers, setLoadingMembers] = useState(false);
