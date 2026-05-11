@@ -28,29 +28,6 @@ function LoadingSpinner({ message }: { message: string }) {
   );
 }
 
-// ── Panel de error ─────────────────────────────────────────────────────────────
-interface ErrorPanelProps {
-  message: string;
-  hint: string;
-  retryLabel: string;
-  onRetry: () => void;
-}
-
-function ErrorPanel({ message, hint, retryLabel, onRetry }: ErrorPanelProps) {
-  return (
-    <div className="max-w-lg mx-auto mt-10 p-6 bg-severity-critical/10 border border-severity-critical/30 rounded-xl">
-      <p className="text-severity-critical font-semibold text-sm">⚠ {message}</p>
-      <p className="text-text-secondary text-xs mt-1">{hint}</p>
-      <button
-        onClick={onRetry}
-        className="mt-4 px-4 py-1.5 text-xs font-medium border border-border-secondary rounded-lg text-text-secondary hover:text-text-primary transition-colors"
-      >
-        {retryLabel}
-      </button>
-    </div>
-  );
-}
-
 // ── Página principal ───────────────────────────────────────────────────────────
 export default function TeamAssetsPage() {
   const { t } = useTranslation();
@@ -61,44 +38,43 @@ export default function TeamAssetsPage() {
   const [activeTab,  setActiveTab]  = useState<string>('');
   const [loading,    setLoading]    = useState(true);
   const [loadingMembers, setLoadingMembers] = useState(false);
-  const [error,      setError]      = useState('');
   const [showModal,  setShowModal]  = useState(false);
 
   // ── Carga inicial: stats + equipos ─────────────────────────────────────────
   const fetchInitial = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const [statsData, teamsData] = await Promise.all([
-        teamService.getStats(),
-        teamService.listTeams(),
-      ]);
-      setStats(statsData);
-      setTeams(teamsData);
-      // Activa la primera pestaña solo si no hay ninguna seleccionada
-      if (teamsData.length > 0) {
-        setActiveTab(prev => prev || teamsData[0].id);
-      }
-    } catch {
-      setError('load');
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    const [statsData, teamsData] = await Promise.all([
+      teamService.getStats(),
+      teamService.listTeams(),
+    ]);
+    setStats(statsData);
+    setTeams(teamsData);
+    if (teamsData.length > 0) {
+      setActiveTab(prev => prev || teamsData[0].id);
     }
-  }, []);
+  } catch {
+    // Sin backend: mostrar vacío en vez de error
+    setStats(null);
+    setTeams([]);
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   // ── Carga miembros cuando cambia la pestaña ────────────────────────────────
   const fetchMembers = useCallback(async (teamId: string) => {
-    if (!teamId) return;
-    setLoadingMembers(true);
-    try {
-      const data = await teamService.listMembers(teamId);
-      setMembers(data);
-    } catch {
-      setMembers([]);
-    } finally {
-      setLoadingMembers(false);
-    }
-  }, []);
+  if (!teamId) return;
+  setLoadingMembers(true);
+  try {
+    const data = await teamService.listMembers(teamId);
+    setMembers(data);
+  } catch {
+    setMembers([]);
+  } finally {
+    setLoadingMembers(false);
+  }
+}, []);
 
   useEffect(() => { fetchInitial(); }, [fetchInitial]);
   useEffect(() => { fetchMembers(activeTab); }, [activeTab, fetchMembers]);
@@ -134,17 +110,6 @@ export default function TeamAssetsPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
   if (loading) {
     return <LoadingSpinner message={t('pages.teamPage.loading')} />;
-  }
-
-  if (error) {
-    return (
-      <ErrorPanel
-        message={t('pages.teamPage.error.loadFailed')}
-        hint={t('pages.teamPage.error.loadHint')}
-        retryLabel={t('pages.teamPage.error.retry')}
-        onRetry={fetchInitial}
-      />
-    );
   }
 
   return (

@@ -1,0 +1,178 @@
+{
+  "app": {
+    "name": "DANI-ETH",
+    "tagline": "Plateforme de hacking éthique automatisée"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "search": "Rechercher",
+    "comingSoon": "Bientôt disponible",
+    "comingSoonDescription": "Cette section est en cours de développement. Nous la construirons dans les prochains sprints."
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "vulnerabilities": "Vulnerability Hub",
+    "aiPentesting": "AI Pentesting",
+    "patches": "Patch Manager",
+    "team": "Équipe & Actifs",
+    "reports": "Rapports",
+    "settings": "Paramètres",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "toggleTheme": "Changer le thème",
+    "toggleThemeDark": "Passer en mode sombre",
+    "toggleThemeLight": "Passer en mode clair",
+    "language": "Langue"
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Tableau de bord",
+      "description": "Centre de commandement sécurité — métriques et vulnérabilités en temps réel",
+      "riskScore": "Score de risque",
+      "criticalIssues": "Problèmes critiques",
+      "highPriority": "Haute priorité",
+      "resolvedThisMonth": "Résolus ce mois",
+      "recentVulnerabilities": "Vulnérabilités récentes",
+      "viewAll": "Voir tout",
+      "description2": "Description",
+      "asset": "Actif",
+      "severity": "Sévérité",
+      "status": "Statut",
+      "noData": "Aucune donnée pour l'instant",
+      "noDataHint": "Les données apparaîtront ici une fois le backend connecté.",
+      "vulnDetail": "Détail de la vulnérabilité",
+      "published": "Publié le",
+      "analyzeWithAI": "Analyser avec l'IA",
+      "viewInHub": "Voir dans VulnerabilityHub",
+      "cveId": "CVE ID"
+    },
+    "vulnerabilities": {
+      "title": "Vulnerability Hub",
+      "description": "Gestion centralisée des vulnérabilités détectées"
+    },
+    "aiPentesting": {
+      "title": "AI Pentesting Engine",
+      "description": "Moteur de tests de pénétration autonome propulsé par l'intelligence artificielle"
+    },
+    "patches": {
+      "title": "Patch Manager",
+      "description": "Gestion des correctifs et des remédiations sur toute l'infrastructure"
+    },
+    "team": {
+      "title": "Équipe & Actifs",
+      "description": "Gestion des équipes, des affectations et des actifs d'infrastructure"
+    },
+    "reports": {
+      "title": "Rapports",
+      "description": "Génération de rapports de sécurité exécutifs et techniques"
+    },
+    "settings": {
+      "title": "Paramètres",
+      "description": "Configuration du système et préférences de l'équipe"
+    },
+    "teamPage": {
+      "subtitle": "Gérez les équipes de sécurité, la répartition de la charge et l'accès à l'application",
+      "btnAddMember": "+ Ajouter un membre",
+      "btnAnalytics": "📊 Analyse d'équipe",
+      "btnSyncLdap": "🔄 Synchroniser depuis LDAP",
+      "stats": {
+        "totalMembers": "MEMBRES TOTAL",
+        "activeTasks": "TÂCHES ACTIVES",
+        "overloaded": "SURCHARGÉS",
+        "available": "DISPONIBLES",
+        "avgCompletion": "TEMPS MOYEN",
+        "teams": "équipes",
+        "avgPerMember": "Moy. {{val}} par membre",
+        "moreThan5": ">5 tâches chacun",
+        "lessThan3": "<3 tâches chacun",
+        "perTask": "Par tâche"
+      },
+      "member": {
+        "idLabel": "ID :",
+        "teamLead": "Chef d'équipe",
+        "activeTasks": "{{count}} tâche active",
+        "activeTasks_plural": "{{count}} tâches actives",
+        "completedMonth": "Terminées ce mois",
+        "avgCompletion": "Temps moyen de completion",
+        "viewReassign": "Voir toutes les tâches & réassigner",
+        "workload": {
+          "label": "Charge actuelle",
+          "light": "Charge légère",
+          "medium": "Charge moyenne",
+          "overloaded": "Surchargé"
+        },
+        "permissions": {
+          "title": "🔒 Permissions de l'application",
+          "viewDashboard": "📊 Voir le tableau de bord",
+          "runScans": "🔍 Lancer des scans",
+          "vulnerabilityHub": "⚠ Vulnerability Hub - Accès complet",
+          "managePatches": "✏ Gérer les correctifs",
+          "teamManagement": "👥 Gestion d'équipe",
+          "adminSettings": "⚙ Paramètres admin"
+        },
+        "notifications": {
+          "title": "🔔 Paramètres de notification",
+          "email": "✉ E-mail",
+          "slack": "💬 Slack",
+          "sms": "📱 SMS (Critiques uniquement)",
+          "inApp": "🔔 Notifications in-app",
+          "notifyWhen": "Notifier quand :",
+          "taskAssigned": "Tâche assignée",
+          "criticalVuln": "Vulnérabilités critiques",
+          "dailyDigest": "Résumé quotidien"
+        },
+        "actions": {
+          "edit": "✏ Modifier",
+          "delete": "🗑",
+          "moveTeam": "🔄 Changer d'équipe"
+        }
+      },
+      "modal": {
+        "addTitle": "+ Ajouter un membre",
+        "fieldName": "Nom complet",
+        "fieldNamePlaceholder": "ex. Jean Dupont",
+        "fieldEmail": "E-mail",
+        "fieldEmailPlaceholder": "jean@entreprise.fr",
+        "fieldRole": "Rôle",
+        "fieldRolePlaceholder": "ex. Ingénieur réseau",
+        "fieldTeamLead": "Est chef d'équipe",
+        "btnAdd": "Ajouter le membre",
+        "btnAdding": "Enregistrement...",
+        "errorRequired": "Nom, e-mail et rôle sont obligatoires.",
+        "errorApi": "Erreur lors de la création du membre."
+      },
+      "empty": {
+        "noTeams": "Aucune équipe créée pour l'instant",
+        "noTeamsHint": "Les équipes sont créées depuis la console Firebase ou via l'API.",
+        "noMembers": "Cette équipe n'a pas encore de membres.",
+        "btnFirstMember": "+ Ajouter le premier membre"
+      },
+      "error": {
+        "loadFailed": "Impossible de charger les informations de l'équipe.",
+        "loadHint": "Veuillez vérifier la connexion au backend.",
+        "retry": "Réessayer",
+        "deleteFailed": "Erreur lors de la suppression du membre.",
+        "confirmDelete": "Supprimer ce membre de l'équipe ?"
+      },
+      "loading": "Chargement de l'équipe & des actifs..."
+    }
+  },
+  "setup": {
+    "title": "Vérification de la configuration",
+    "checkingBackend": "Connexion au backend...",
+    "backendOk": "Backend connecté",
+    "backendError": "Impossible de se connecter au backend",
+    "firebaseOk": "Firebase configuré",
+    "firebaseError": "Firebase n'est pas configuré",
+    "ready": "Tout est prêt. L'application fonctionne correctement.",
+    "nextSteps": "Prochaines étapes",
+    "step2": "Implémenter la mise en page et la navigation",
+    "step3": "Implémenter le système d'authentification",
+    "goToDashboard": "Aller au tableau de bord"
+  }
+}

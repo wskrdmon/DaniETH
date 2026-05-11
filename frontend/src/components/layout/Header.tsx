@@ -27,8 +27,7 @@ export default function Header({ onOpenSidebar }: HeaderProps) {
   const currentNavItem = NAV_ITEMS.find((item) => location.pathname.startsWith(item.path));
   const pageTitle = currentNavItem ? t(currentNavItem.labelKey) : t('app.name');
 
-  const currentLang = i18n.language.startsWith('en') ? 'en' : 'es';
-
+  const currentLang = ['es', 'en', 'de', 'fr'].find(l => i18n.language.startsWith(l)) ?? 'es';
   const handleLogout = async () => {
     try {
       await signOut();
@@ -73,6 +72,8 @@ export default function Header({ onOpenSidebar }: HeaderProps) {
         >
           <option value="es">Español</option>
           <option value="en">English</option>
+          <option value="de">Deutsch</option>
+          <option value="fr">Français</option>
         </select>
 
         <button 

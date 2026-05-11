@@ -32,7 +32,24 @@
   "pages": {
     "dashboard": {
       "title": "Dashboard",
-      "description": "Security command center — metrics and vulnerabilities in real time"
+      "description": "Security command center — metrics and vulnerabilities in real time",
+      "riskScore": "Risk Score",
+      "criticalIssues": "Critical Issues",
+      "highPriority": "High Priority",
+      "resolvedThisMonth": "Resolved This Month",
+      "recentVulnerabilities": "Recent Vulnerabilities",
+      "viewAll": "View All",
+      "description2": "Description",
+      "asset": "Asset",
+      "severity": "Severity",
+      "status": "Status",
+      "noData": "No data yet",
+      "noDataHint": "Data will appear here once the backend is connected.",
+      "vulnDetail": "Vulnerability Detail",
+      "published": "Published",
+      "analyzeWithAI": "Analyze with AI",
+      "viewInHub": "View in VulnerabilityHub",
+      "cveId": "CVE ID"
     },
     "vulnerabilities": {
       "title": "Vulnerability Hub",

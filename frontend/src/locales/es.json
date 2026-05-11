@@ -31,9 +31,26 @@
   },
   "pages": {
     "dashboard": {
-      "title": "Dashboard",
-      "description": "Centro de comando de seguridad — métricas y vulnerabilidades en tiempo real"
-    },
+  "title": "Dashboard",
+  "description": "Centro de comando de seguridad — métricas y vulnerabilidades en tiempo real",
+  "riskScore": "Puntuación de Riesgo",
+  "criticalIssues": "Issues Críticos",
+  "highPriority": "Alta Prioridad",
+  "resolvedThisMonth": "Resueltos Este Mes",
+  "recentVulnerabilities": "Vulnerabilidades Recientes",
+  "viewAll": "Ver Todas",
+  "description2": "Descripción",
+  "asset": "Activo",
+  "severity": "Severidad",
+  "status": "Estado",
+  "noData": "Sin datos aún",
+  "noDataHint": "Los datos aparecerán aquí cuando el backend esté conectado.",
+  "vulnDetail": "Detalle de Vulnerabilidad",
+  "published": "Publicado",
+  "analyzeWithAI": "Analizar con IA",
+  "viewInHub": "Ver en VulnerabilityHub",
+  "cveId": "CVE ID"
+},
     "vulnerabilities": {
       "title": "Vulnerability Hub",
       "description": "Gestión centralizada de vulnerabilidades detectadas"
@@ -159,3 +176,4 @@
     "goToDashboard": "Ir al Dashboard"
   }
 }
+
