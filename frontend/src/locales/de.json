@@ -52,16 +52,97 @@
       "cveId": "CVE-ID"
     },
     "vulnerabilities": {
-      "title": "Vulnerability Hub",
-      "description": "Zentralisierte Verwaltung erkannter Schwachstellen"
+      "title": "Schwachstellen-Hub",
+      "description": "Zentralisierte Verwaltung erkannter Schwachstellen",
+      "emptyServers": "Simulierte Serverschwachstellen. Klicken Sie auf andere Tabs, um Daten anzuzeigen.",
+      "tabs": {
+        "network": "Netzwerk & Perimeter",
+        "applications": "Anwendungen & Web",
+        "servers": "Server & Dienste"
+      },
+      "filters": {
+        "search": "Schwachstellen suchen...",
+        "allSeverities": "Alle Schweregrade",
+        "critical": "Kritisch",
+        "high": "Hoch",
+        "medium": "Mittel",
+        "low": "Niedrig",
+        "sortBy": "Sortieren nach...",
+        "sortHighLow": "Schweregrad (Hoch zu Niedrig)",
+        "sortLowHigh": "Schweregrad (Niedrig zu Hoch)"
+      },
+      "table": {
+        "cveId": "CVE-ID",
+        "severity": "Schweregrad",
+        "title": "Titel",
+        "asset": "Asset",
+        "cvss": "CVSS",
+        "repetitions": "Wiederholungen",
+        "status": "Status"
+      }
     },
     "aiPentesting": {
-      "title": "AI Pentesting Engine",
-      "description": "Autonome Penetrationstest-Engine mit künstlicher Intelligenz"
+      "title": "KI-Pentesting-Engine",
+      "description": "Autonome Penetrationstest-Engine mit künstlicher Intelligenz",
+      "actions": {
+        "pause": "Scan pausieren",
+        "newScan": "+ Neuer Scan"
+      },
+      "stats": {
+        "toolsExecuting": "Aktive Tools",
+        "total": "gesamt",
+        "active": "Aktiv",
+        "activeBranches": "Aktive Zweige",
+        "paths": "Pfade",
+        "completed": "abgeschlossen",
+        "vulnerabilitiesFound": "Gefundene Schwachstellen",
+        "issues": "Probleme",
+        "critical": "kritisch",
+        "scanProgress": "Scan-Fortschritt",
+        "remaining": "verbleibend"
+      },
+      "rationale": {
+        "title": "Engine-Logik",
+        "currentFocus": "Aktueller Fokus",
+        "decisionProcess": "Entscheidungsprozess",
+        "next": "Weiter",
+        "reasoning": "Begründung"
+      },
+      "tools": {
+        "title": "Tool-Ausführung",
+        "active": "aktiv",
+        "running": "LÄUFT",
+        "starting": "STARTET"
+      },
+      "logs": {
+        "title": "Ausführungsprotokolle"
+      },
+      "nextSteps": {
+        "title": "Nächste Schritte",
+        "priority": "Priorität",
+        "eta": "Gesch. Zeit"
+      }
     },
     "patches": {
-      "title": "Patch Manager",
-      "description": "Patch- und Behebungsverwaltung für die gesamte Infrastruktur"
+      "title": "Patch-Manager",
+      "description": "Patch-Management und Infrastruktur-Sanierung",
+      "tabs": {
+        "network": "Netzwerk & Perimeter",
+        "appSecurity": "Anwendungssicherheit",
+        "serversContainers": "Server & Container"
+      },
+      "buttons": {
+        "autoAssign": "Alle automatisch zuweisen",
+        "reassign": "Neu zuweisen"
+      },
+      "table": {
+        "cve": "CVE",
+        "asset": "ASSET",
+        "currentTarget": "AKTUELL -> ZIEL",
+        "severity": "SCHWEREGRAD",
+        "assigned": "ZUGEWIESEN",
+        "action": "AKTION"
+      }
     },
     "team": {
       "title": "Team & Assets",
@@ -69,11 +150,46 @@
     },
     "reports": {
       "title": "Berichte",
-      "description": "Erstellung von Führungs- und technischen Sicherheitsberichten"
+      "description": "Erstellen Sie umfassende Sicherheitsberichte",
+      "vulnerabilityReport": "Schwachstellenbericht",
+      "vulnerabilityDesc": "Detaillierte Auflistung von Schwachstellen mit KI-Aktionen und Tool-Ergebnissen",
+      "patchesByTech": "Patches nach Technologie",
+      "patchesByTechDesc": "Organisiert nach Technologiestack, zeigt alle ausstehenden Patches",
+      "patchesByServer": "Patches nach Server",
+      "patchesByServerDesc": "Organisiert nach Infrastruktur, zeigt Patches pro Server",
+      "riskHeatmap": "Risiko-Heatmap",
+      "riskHeatmapDesc": "Visuelle Risiko-Expositionskarte nach Anlagentyp und Schweregrad",
+      "personnelAssignments": "Personal & Aufgaben",
+      "personnelDesc": "Analyse der Arbeitsbelastung des Teams mit Abschlussmetriken",
+      "execSummary": "Zusammenfassung für Führungskräfte",
+      "execDesc": "Umfassender Bericht, der alle Sicherheitskennzahlen und Trends für die Führungsebene konsolidiert",
+      "generate": "Bericht erstellen",
+      "generateExec": "Zusammenfassenden Bericht erstellen"
     },
     "settings": {
       "title": "Einstellungen",
-      "description": "Systemkonfiguration und Teampräferenzen"
+      "description": "Systemkonfiguration und Teamberechtigungen",
+      "general": {
+        "title": "Allgemeine Einstellungen",
+        "theme": "Design",
+        "dark": "Dunkel",
+        "light": "Hell",
+        "active": "Aktiv",
+        "comingSoon": "Demnächst",
+        "language": "Sprache",
+        "aiWorkers": "KI-Engine-Worker",
+        "aiWorkersHint": "Mehr Worker = schnellere Scans, höhere CPU-Auslastung"
+      },
+      "permissions": {
+        "title": "Team-Mitgliedsberechtigungen",
+        "table": {
+          "member": "Mitglied",
+          "portalAccess": "Portal-Zugriff",
+          "runEngine": "Engine ausführen",
+          "receiveAlerts": "Benachrichtigungen erhalten",
+          "alertChannel": "Alarmkanal"
+        }
+      }
     },
     "teamPage": {
       "subtitle": "Sicherheitsteams, Arbeitsverteilung und Anwendungszugriff verwalten",

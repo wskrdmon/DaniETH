@@ -53,15 +53,96 @@
     },
     "vulnerabilities": {
       "title": "Vulnerability Hub",
-      "description": "Centralized management of detected vulnerabilities"
+      "description": "Centralized management of detected vulnerabilities",
+      "emptyServers": "Simulated server vulnerabilities. Click other tabs to view data.",
+      "tabs": {
+        "network": "Network & Perimeter",
+        "applications": "Applications & Web",
+        "servers": "Servers & Services"
+      },
+      "filters": {
+        "search": "Search vulnerabilities...",
+        "allSeverities": "All Severities",
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low",
+        "sortBy": "Sort by...",
+        "sortHighLow": "Severity (High to Low)",
+        "sortLowHigh": "Severity (Low to High)"
+      },
+      "table": {
+        "cveId": "CVE ID",
+        "severity": "Severity",
+        "title": "Title",
+        "asset": "Asset",
+        "cvss": "CVSS",
+        "repetitions": "Repetitions",
+        "status": "Status"
+      }
     },
     "aiPentesting": {
       "title": "AI Pentesting Engine",
-      "description": "Autonomous penetration testing engine powered by artificial intelligence"
+      "description": "Autonomous penetration testing engine with artificial intelligence",
+      "actions": {
+        "pause": "Pause Scan",
+        "newScan": "+ New Scan"
+      },
+      "stats": {
+        "toolsExecuting": "Tools Executing",
+        "total": "total",
+        "active": "Active",
+        "activeBranches": "Active Branches",
+        "paths": "paths",
+        "completed": "completed",
+        "vulnerabilitiesFound": "Vulnerabilities Found",
+        "issues": "issues",
+        "critical": "critical",
+        "scanProgress": "Scan Progress",
+        "remaining": "remaining"
+      },
+      "rationale": {
+        "title": "Engine Rationale",
+        "currentFocus": "Current Focus",
+        "decisionProcess": "Decision Process",
+        "next": "Next",
+        "reasoning": "Reasoning"
+      },
+      "tools": {
+        "title": "Tools Execution",
+        "active": "active",
+        "running": "RUNNING",
+        "starting": "STARTING"
+      },
+      "logs": {
+        "title": "Execution Logs"
+      },
+      "nextSteps": {
+        "title": "Next Steps",
+        "priority": "Priority",
+        "eta": "Est. time"
+      }
     },
     "patches": {
       "title": "Patch Manager",
-      "description": "Patch and remediation management across infrastructure"
+      "description": "Patch management and infrastructure remediation",
+      "tabs": {
+        "network": "Network & Perimeter",
+        "appSecurity": "Application Security",
+        "serversContainers": "Servers & Containers"
+      },
+      "buttons": {
+        "autoAssign": "Auto-Assign All",
+        "reassign": "Reassign"
+      },
+      "table": {
+        "cve": "CVE",
+        "asset": "ASSET",
+        "currentTarget": "CURRENT -> TARGET",
+        "severity": "SEVERITY",
+        "assigned": "ASSIGNED",
+        "action": "ACTION"
+      }
     },
     "team": {
       "title": "Team & Assets",
@@ -69,11 +150,46 @@
     },
     "reports": {
       "title": "Reports",
-      "description": "Executive and technical security report generation"
+      "description": "Generate comprehensive security reports",
+      "vulnerabilityReport": "Vulnerability Report",
+      "vulnerabilityDesc": "Detailed listing of vulnerabilities with AI actions and tool results",
+      "patchesByTech": "Patches by Technology",
+      "patchesByTechDesc": "Organized by technology stack showing all pending patches",
+      "patchesByServer": "Patches by Server",
+      "patchesByServerDesc": "Organized by infrastructure showing patches per server",
+      "riskHeatmap": "Risk Heatmap",
+      "riskHeatmapDesc": "Visual risk exposure map by asset type and severity",
+      "personnelAssignments": "Personnel & Assignments",
+      "personnelDesc": "Team workload analysis with completion metrics",
+      "execSummary": "Executive Summary",
+      "execDesc": "Comprehensive report consolidating all security metrics and trends for leadership",
+      "generate": "Generate Report",
+      "generateExec": "Generate Executive Report"
     },
     "settings": {
       "title": "Settings",
-      "description": "System configuration and team preferences"
+      "description": "Configure system preferences and team permissions",
+      "general": {
+        "title": "General Settings",
+        "theme": "Theme",
+        "dark": "Dark",
+        "light": "Light",
+        "active": "Active",
+        "comingSoon": "Coming Soon",
+        "language": "Language",
+        "aiWorkers": "AI Engine Workers",
+        "aiWorkersHint": "More workers = faster scans, higher CPU usage"
+      },
+      "permissions": {
+        "title": "Team Member Permissions",
+        "table": {
+          "member": "Member",
+          "portalAccess": "Portal Access",
+          "runEngine": "Run Engine",
+          "receiveAlerts": "Receive Alerts",
+          "alertChannel": "Alert Channel"
+        }
+      }
     },
     "teamPage": {
       "subtitle": "Manage security teams, workload distribution, and application access",

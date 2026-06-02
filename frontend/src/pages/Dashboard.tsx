@@ -119,57 +119,120 @@ function VulnDrawer({ vuln, onClose }: { vuln: Vulnerability | null; onClose: ()
   return (
     <>
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={onClose} />
-      <div className="fixed right-0 top-0 h-full w-full max-w-md z-50 flex flex-col shadow-2xl overflow-y-auto"
+      <div className="fixed right-0 top-0 h-full w-full max-w-xl z-50 flex flex-col shadow-2xl overflow-y-auto"
         style={{ background: 'var(--bg-primary)', borderLeft: '1px solid var(--border-primary)' }}>
-        <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid var(--border-primary)' }}>
+        
+        {/* Header interactivo */}
+        <div className="flex items-center justify-between px-8 py-6 sticky top-0 z-10 backdrop-blur-md" 
+             style={{ background: 'rgba(10, 14, 23, 0.95)', borderBottom: '1px solid var(--border-primary)' }}>
           <div>
-            <div className="text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>{t('pages.dashboard.vulnDetail')}</div>
-            <h2 className="text-base font-bold font-mono" style={{ color: 'var(--accent-cyan)' }}>{vuln.cveId}</h2>
+            <h2 className="text-2xl font-bold font-mono" style={{ color: 'var(--accent-cyan)' }}>{vuln.cveId}</h2>
           </div>
           <button onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-white/[0.08]"
+            className="w-10 h-10 rounded-full flex items-center justify-center transition-colors text-xl hover:bg-white/[0.08]"
             style={{ color: 'var(--text-muted)' }}>✕</button>
         </div>
 
-        <div className="flex-1 px-6 py-6 space-y-6">
-          <div className="flex items-center gap-3">
-            <SeverityBadge severity={vuln.severity} />
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>CVSS</span>
-            <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{vuln.cvss}</span>
-          </div>
-
+        <div className="flex-1 px-8 py-6 space-y-8">
+          
+          {/* Header Info */}
           <div>
-            <div className="text-xs uppercase tracking-wider font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>
-              {t('pages.dashboard.description2')}
+            <div className="mb-4"><SeverityBadge severity={vuln.severity} /></div>
+            <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+              {vuln.description}
+            </h2>
+            <div className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
+              {vuln.publishedDate} • CVSS {vuln.cvss} • {vuln.asset}
             </div>
-            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{vuln.description}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { label: t('pages.dashboard.asset'), value: vuln.asset, mono: true },
-              { label: t('pages.dashboard.status'), value: vuln.status, mono: false },
-              { label: t('pages.dashboard.published'), value: vuln.publishedDate, mono: false, full: true },
-            ].map(({ label, value, mono, full }) => (
-              <div key={label} className={`rounded-lg p-3 border ${full ? 'col-span-2' : ''}`}
-                style={{ background: 'var(--bg-tertiary)', borderColor: 'var(--border-primary)' }}>
-                <div className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>{label}</div>
-                <div className={`text-sm font-medium break-all ${mono ? 'font-mono' : ''}`}
-                  style={{ color: 'var(--text-primary)' }}>{value}</div>
+          {/* Detailed Explanation */}
+          <div className="p-6 rounded-xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
+            <h3 className="text-base font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              📖 {t('pages.dashboard.drawer.detailedExplanation', 'Detailed Explanation')}
+            </h3>
+            <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }}>
+              A critical vulnerability has been detected in the system at the <code className="px-1.5 py-0.5 rounded font-mono text-xs" style={{background: 'var(--bg-tertiary)', color: 'var(--accent-cyan)'}}>/api/auth/login</code> endpoint. 
+              This vulnerability allows attackers to bypass authentication by injecting malicious queries.
+            </p>
+            <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }}>
+              <strong style={{ color: 'var(--severity-high)' }}>{t('pages.dashboard.drawer.attackVector', 'Attack Vector:')}</strong> The application constructs queries using string 
+              concatenation without proper input validation. An attacker can submit input like <code className="px-1.5 py-0.5 rounded font-mono text-xs" style={{color: 'var(--severity-critical)'}}>admin' OR '1'='1</code> to manipulate the query logic.
+            </p>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+              <strong style={{ color: 'var(--severity-high)' }}>{t('pages.dashboard.drawer.impact', 'Impact:')}</strong> Successful exploitation grants unauthorized access as any user, enables 
+              data exfiltration, and potentially allows execution of arbitrary commands.
+            </p>
+          </div>
+
+          {/* Technical Details Grid */}
+          <div>
+            <h3 className="text-base font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              🔬 {t('pages.dashboard.drawer.technicalDetails', 'Technical Details')}
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
+                <div className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>{t('pages.dashboard.drawer.cvssScore', 'CVSS Score')}</div>
+                <div className="text-xl font-bold" style={{ color: 'var(--severity-critical)' }}>{vuln.cvss} / 10.0</div>
               </div>
-            ))}
+              <div className="p-4 rounded-xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
+                <div className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>{t('pages.dashboard.drawer.attackComplexity', 'Attack Complexity')}</div>
+                <div className="text-xl font-bold" style={{ color: 'var(--severity-low)' }}>{t('pages.dashboard.drawer.low', 'Low')}</div>
+              </div>
+              <div className="p-4 rounded-xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
+                <div className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>{t('pages.dashboard.drawer.privilegesRequired', 'Privileges Required')}</div>
+                <div className="text-xl font-bold" style={{ color: 'var(--severity-critical)' }}>{t('pages.dashboard.drawer.none', 'None')}</div>
+              </div>
+              <div className="p-4 rounded-xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
+                <div className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>{t('pages.dashboard.drawer.userInteraction', 'User Interaction')}</div>
+                <div className="text-xl font-bold" style={{ color: 'var(--severity-critical)' }}>{t('pages.dashboard.drawer.none', 'None')}</div>
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-2 pt-2">
-            <button className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors"
-              style={{ background: 'rgba(0,212,255,0.08)', color: 'var(--accent-cyan)', border: '1px solid rgba(0,212,255,0.2)' }}>
-              🔍 {t('pages.dashboard.analyzeWithAI')}
+          {/* Remediation Steps */}
+          <div className="p-6 rounded-xl border" style={{ background: 'rgba(0, 212, 255, 0.03)', borderColor: 'rgba(0, 212, 255, 0.2)' }}>
+            <h3 className="text-base font-bold mb-5 flex items-center gap-2" style={{ color: 'var(--accent-cyan)' }}>
+              ✅ {t('pages.dashboard.drawer.remediationSteps', 'Remediation Steps')}
+            </h3>
+            <div className="space-y-6">
+              {[
+                { title: 'Implement Parameterized Queries (Immediate)', desc: 'Replace all string concatenation with parameterized queries or prepared statements.' },
+                { title: 'Add Input Validation (Within 24h)', desc: 'Implement strict input validation using whitelisting. Validate username format and reject keywords.' },
+                { title: 'Deploy WAF Rules (Within 48h)', desc: 'Configure WAF to block common injection patterns as an additional defense layer.' },
+                { title: 'Verify Fix (After implementation)', desc: 'Re-run automated security scans and conduct manual penetration testing.' }
+              ].map((step, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-sm font-bold mt-0.5"
+                    style={{ background: 'var(--accent-cyan)', color: '#0a0e17' }}>{i + 1}</div>
+                  <div>
+                    <div className="text-sm font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>{step.title}</div>
+                    <div className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{step.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-3 pt-4 pb-8">
+            <button className="w-full py-3.5 rounded-xl text-sm font-bold transition-all hover:brightness-110 active:scale-[0.98]"
+              style={{ background: 'var(--accent-cyan)', color: '#0a0e17' }}
+              onClick={() => alert('Generando plan con IA...')}>
+              🤖 {t('pages.dashboard.drawer.generatePlan', 'Generate Remediation Plan')}
             </button>
-            <button className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors"
-              style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', border: '1px solid var(--border-primary)' }}>
-              📋 {t('pages.dashboard.viewInHub')}
+            <button className="w-full py-3.5 rounded-xl text-sm font-bold transition-colors hover:bg-white/[0.05] active:scale-[0.98]"
+              style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-primary)' }}
+              onClick={() => alert('Abriendo modal de JIRA...')}>
+              📋 {t('pages.dashboard.drawer.createTicket', 'Create JIRA Ticket')}
+            </button>
+            <button className="w-full py-3.5 rounded-xl text-sm font-bold transition-colors hover:bg-white/[0.05] active:scale-[0.98]"
+              style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-primary)' }}
+              onClick={() => alert('Abriendo selector de equipo...')}>
+              👤 {t('pages.dashboard.drawer.assignTeam', 'Assign to Team Member')}
             </button>
           </div>
+
         </div>
       </div>
     </>
@@ -192,16 +255,34 @@ export default function DashboardPage() {
   const { t } = useTranslation();
   const [selectedVuln, setSelectedVuln] = useState<Vulnerability | null>(null);
 
-  // TODO: reemplazar con llamada real a la API via Axios
+ // Datos de prueba (Mock Data) extraídos del diseño original de Max
   const stats: DashboardStats = {
-    riskScore: null,
-    criticalCount: 0,
-    highCount: 0,
-    resolvedThisMonth: 0,
+    riskScore: 6.8,
+    criticalCount: 14,
+    highCount: 33,
+    resolvedThisMonth: 142,
   };
 
-  // TODO: reemplazar con datos reales del backend
-  const vulnerabilities: Vulnerability[] = [];
+  const vulnerabilities: Vulnerability[] = [
+    {
+      cveId: 'CVE-2024-1234',
+      description: 'SQL Injection en autenticación',
+      asset: 'api.company.com',
+      severity: 'CRITICAL',
+      status: 'In Progress',
+      cvss: 9.8,
+      publishedDate: 'Hace 2 horas'
+    },
+    {
+      cveId: 'CVE-2024-5678',
+      description: 'XSS en perfil de usuario',
+      asset: 'portal.company.com',
+      severity: 'HIGH',
+      status: 'Open',
+      cvss: 7.2,
+      publishedDate: 'Hace 5 horas'
+    }
+  ];
 
   const openVulnDrawer = (cveId: string) => {
     setSelectedVuln(vulnerabilities.find((v) => v.cveId === cveId) ?? null);

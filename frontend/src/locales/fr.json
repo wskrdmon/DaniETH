@@ -52,16 +52,97 @@
       "cveId": "CVE ID"
     },
     "vulnerabilities": {
-      "title": "Vulnerability Hub",
-      "description": "Gestion centralisée des vulnérabilités détectées"
+      "title": "Hub de vulnérabilités",
+      "description": "Gestion centralisée des vulnérabilités détectées",
+      "emptyServers": "Vulnérabilités serveur simulées. Cliquez sur d'autres onglets pour voir les données.",
+      "tabs": {
+        "network": "Réseau et Périmètre",
+        "applications": "Applications et Web",
+        "servers": "Serveurs et Services"
+      },
+      "filters": {
+        "search": "Rechercher des vulnérabilités...",
+        "allSeverities": "Toutes les gravités",
+        "critical": "Critique",
+        "high": "Élevée",
+        "medium": "Moyenne",
+        "low": "Faible",
+        "sortBy": "Trier par...",
+        "sortHighLow": "Gravité (Décroissant)",
+        "sortLowHigh": "Gravité (Croissant)"
+      },
+      "table": {
+        "cveId": "ID CVE",
+        "severity": "Gravité",
+        "title": "Titre",
+        "asset": "Actif",
+        "cvss": "CVSS",
+        "repetitions": "Répétitions",
+        "status": "Statut"
+      }
     },
     "aiPentesting": {
-      "title": "AI Pentesting Engine",
-      "description": "Moteur de tests de pénétration autonome propulsé par l'intelligence artificielle"
+      "title": "Moteur de Pentest IA",
+      "description": "Moteur de tests d'intrusion autonomes avec intelligence artificielle",
+      "actions": {
+        "pause": "Pause",
+        "newScan": "+ Nouveau Scan"
+      },
+      "stats": {
+        "toolsExecuting": "Outils en exécution",
+        "total": "total",
+        "active": "Actif",
+        "activeBranches": "Branches actives",
+        "paths": "chemins",
+        "completed": "terminé",
+        "vulnerabilitiesFound": "Vulnérabilités trouvées",
+        "issues": "problèmes",
+        "critical": "critiques",
+        "scanProgress": "Progression",
+        "remaining": "restant"
+      },
+      "rationale": {
+        "title": "Logique du moteur",
+        "currentFocus": "Focus actuel",
+        "decisionProcess": "Processus de décision",
+        "next": "Suivant",
+        "reasoning": "Raisonnement"
+      },
+      "tools": {
+        "title": "Exécution des outils",
+        "active": "actifs",
+        "running": "EN COURS",
+        "starting": "DÉMARRAGE"
+      },
+      "logs": {
+        "title": "Journaux d'exécution"
+      },
+      "nextSteps": {
+        "title": "Prochaines étapes",
+        "priority": "Priorité",
+        "eta": "Temps estimé"
+      }
     },
     "patches": {
-      "title": "Patch Manager",
-      "description": "Gestion des correctifs et des remédiations sur toute l'infrastructure"
+      "title": "Gestionnaire de correctifs",
+      "description": "Gestion des correctifs et remédiations par infrastructure",
+      "tabs": {
+        "network": "Réseau et Périmètre",
+        "appSecurity": "Sécurité des applications",
+        "serversContainers": "Serveurs et Conteneurs"
+      },
+      "buttons": {
+        "autoAssign": "Auto-assigner tout",
+        "reassign": "Réassigner"
+      },
+      "table": {
+        "cve": "CVE",
+        "asset": "ACTIF",
+        "currentTarget": "ACTUEL -> CIBLE",
+        "severity": "GRAVITÉ",
+        "assigned": "ASSIGNÉ",
+        "action": "ACTION"
+      }
     },
     "team": {
       "title": "Équipe & Actifs",
@@ -69,11 +150,46 @@
     },
     "reports": {
       "title": "Rapports",
-      "description": "Génération de rapports de sécurité exécutifs et techniques"
+      "description": "Générer des rapports de sécurité complets",
+      "vulnerabilityReport": "Rapport de vulnérabilités",
+      "vulnerabilityDesc": "Liste détaillée des vulnérabilités avec actions IA et résultats des outils",
+      "patchesByTech": "Correctifs par technologie",
+      "patchesByTechDesc": "Organisé par pile technologique montrant tous les correctifs en attente",
+      "patchesByServer": "Correctifs par serveur",
+      "patchesByServerDesc": "Organisé par infrastructure montrant les correctifs par serveur",
+      "riskHeatmap": "Carte de chaleur des risques",
+      "riskHeatmapDesc": "Carte visuelle d'exposition au risque par type d'actif et sévérité",
+      "personnelAssignments": "Personnel et affectations",
+      "personnelDesc": "Analyse de la charge de travail de l'équipe avec métriques d'achèvement",
+      "execSummary": "Résumé exécutif",
+      "execDesc": "Rapport complet consolidant toutes les métriques de sécurité et tendances pour la direction",
+      "generate": "Générer le rapport",
+      "generateExec": "Générer le rapport exécutif"
     },
     "settings": {
       "title": "Paramètres",
-      "description": "Configuration du système et préférences de l'équipe"
+      "description": "Configurer les préférences du système et les autorisations de l'équipe",
+      "general": {
+        "title": "Paramètres Généraux",
+        "theme": "Thème",
+        "dark": "Sombre",
+        "light": "Clair",
+        "active": "Actif",
+        "comingSoon": "À venir",
+        "language": "Langue",
+        "aiWorkers": "Travailleurs du Moteur IA",
+        "aiWorkersHint": "Plus de travailleurs = analyses plus rapides, utilisation du CPU plus élevée"
+      },
+      "permissions": {
+        "title": "Autorisations des Membres de l'Équipe",
+        "table": {
+          "member": "Membre",
+          "portalAccess": "Accès Portail",
+          "runEngine": "Exécuter le Moteur",
+          "receiveAlerts": "Recevoir des Alertes",
+          "alertChannel": "Canal d'Alerte"
+        }
+      }
     },
     "teamPage": {
       "subtitle": "Gérez les équipes de sécurité, la répartition de la charge et l'accès à l'application",

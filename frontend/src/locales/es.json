@@ -31,49 +31,181 @@
   },
   "pages": {
     "dashboard": {
-  "title": "Dashboard",
-  "description": "Centro de comando de seguridad — métricas y vulnerabilidades en tiempo real",
-  "riskScore": "Puntuación de Riesgo",
-  "criticalIssues": "Issues Críticos",
-  "highPriority": "Alta Prioridad",
-  "resolvedThisMonth": "Resueltos Este Mes",
-  "recentVulnerabilities": "Vulnerabilidades Recientes",
-  "viewAll": "Ver Todas",
-  "description2": "Descripción",
-  "asset": "Activo",
-  "severity": "Severidad",
-  "status": "Estado",
-  "noData": "Sin datos aún",
-  "noDataHint": "Los datos aparecerán aquí cuando el backend esté conectado.",
-  "vulnDetail": "Detalle de Vulnerabilidad",
-  "published": "Publicado",
-  "analyzeWithAI": "Analizar con IA",
-  "viewInHub": "Ver en VulnerabilityHub",
-  "cveId": "CVE ID"
-},
+      "title": "Dashboard",
+      "description": "Centro de comando de seguridad — métricas y vulnerabilidades en tiempo real",
+      "riskScore": "Puntuación de Riesgo",
+      "criticalIssues": "Issues Críticos",
+      "highPriority": "Alta Prioridad",
+      "resolvedThisMonth": "Resueltos Este Mes",
+      "recentVulnerabilities": "Vulnerabilidades Recientes",
+      "viewAll": "Ver Todas",
+      "description2": "Descripción",
+      "asset": "Activo",
+      "severity": "Severidad",
+      "status": "Estado",
+      "noData": "Sin datos aún",
+      "noDataHint": "Los datos aparecerán aquí cuando el backend esté conectado.",
+      "vulnDetail": "Detalle de Vulnerabilidad",
+      "published": "Publicado",
+      "analyzeWithAI": "Analizar con IA",
+      "viewInHub": "Ver en VulnerabilityHub",
+      "cveId": "CVE ID",
+      "drawer": {
+        "detailedExplanation": "Explicación Detallada",
+        "attackVector": "Vector de Ataque:",
+        "impact": "Impacto:",
+        "technicalDetails": "Detalles Técnicos",
+        "cvssScore": "Puntuación CVSS",
+        "attackComplexity": "Complejidad del Ataque",
+        "privilegesRequired": "Privilegios Requeridos",
+        "userInteraction": "Interacción del Usuario",
+        "low": "Baja",
+        "none": "Ninguno",
+        "remediationSteps": "Pasos de Remediación",
+        "generatePlan": "Generar Plan de Remediación",
+        "createTicket": "Crear Ticket en JIRA",
+        "assignTeam": "Asignar a Miembro del Equipo"
+      }
+    },
     "vulnerabilities": {
       "title": "Vulnerability Hub",
-      "description": "Gestión centralizada de vulnerabilidades detectadas"
+      "description": "Gestión centralizada de vulnerabilidades detectadas",
+      "emptyServers": "Vulnerabilidades de servidores simuladas. Haz clic en otras pestañas para ver los datos.",
+      "tabs": {
+        "network": "Red y Perímetro",
+        "applications": "Aplicaciones y Web",
+        "servers": "Servidores y Servicios"
+      },
+      "filters": {
+        "search": "Buscar vulnerabilidades...",
+        "allSeverities": "Todas las Severidades",
+        "critical": "Crítica",
+        "high": "Alta",
+        "medium": "Media",
+        "low": "Baja",
+        "sortBy": "Ordenar por...",
+        "sortHighLow": "Severidad (Mayor a Menor)",
+        "sortLowHigh": "Severidad (Menor a Mayor)"
+      },
+      "table": {
+        "cveId": "CVE ID",
+        "severity": "Severidad",
+        "title": "Título",
+        "asset": "Activo",
+        "cvss": "CVSS",
+        "repetitions": "Repeticiones",
+        "status": "Estado"
+      }
     },
     "aiPentesting": {
       "title": "AI Pentesting Engine",
-      "description": "Motor de pruebas de penetración autónomas con inteligencia artificial"
+      "description": "Motor de pruebas de penetración autónomas con inteligencia artificial",
+      "actions": {
+        "pause": "Pausar Escaneo",
+        "newScan": "+ Nuevo Escaneo"
+      },
+      "stats": {
+        "toolsExecuting": "Herramientas Ejecutándose",
+        "total": "total",
+        "active": "Activo",
+        "activeBranches": "Ramas Activas",
+        "paths": "rutas",
+        "completed": "completado",
+        "vulnerabilitiesFound": "Vulnerabilidades Encontradas",
+        "issues": "problemas",
+        "critical": "críticos",
+        "scanProgress": "Progreso del Escaneo",
+        "remaining": "restante"
+      },
+      "rationale": {
+        "title": "Lógica del Motor",
+        "currentFocus": "Enfoque Actual",
+        "decisionProcess": "Proceso de Decisión",
+        "next": "Siguiente",
+        "reasoning": "Razonamiento"
+      },
+      "tools": {
+        "title": "Ejecución de Herramientas",
+        "active": "activas",
+        "running": "EJECUTANDO",
+        "starting": "INICIANDO"
+      },
+      "logs": {
+        "title": "Registros de Ejecución"
+      },
+      "nextSteps": {
+        "title": "Próximos Pasos",
+        "priority": "Prioridad",
+        "eta": "Tiempo est."
+      }
     },
     "patches": {
       "title": "Patch Manager",
-      "description": "Gestión de parches y remediaciones por infraestructura"
+      "description": "Gestión de parches y remediaciones por infraestructura",
+      "tabs": {
+        "network": "Red y Perímetro",
+        "appSecurity": "Seguridad de Aplicaciones",
+        "serversContainers": "Servidores y Contenedores"
+      },
+      "buttons": {
+        "autoAssign": "Auto-Asignar Todo",
+        "reassign": "Reasignar"
+      },
+      "table": {
+        "cve": "CVE",
+        "asset": "ACTIVO",
+        "currentTarget": "ACTUAL -> DESTINO",
+        "severity": "SEVERIDAD",
+        "assigned": "ASIGNADO",
+        "action": "ACCIÓN"
+      }
     },
     "team": {
       "title": "Gestión de Equipos y Activos",
       "description": "Gestión de equipos, asignaciones y activos de infraestructura"
     },
     "reports": {
-      "title": "Reports",
-      "description": "Generación de reportes ejecutivos y técnicos de seguridad"
+      "title": "Reportes",
+      "description": "Generación de reportes ejecutivos y técnicos de seguridad",
+      "vulnerabilityReport": "Reporte de Vulnerabilidades",
+      "vulnerabilityDesc": "Listado detallado de vulnerabilidades con acciones de IA y resultados de herramientas",
+      "patchesByTech": "Parches por Tecnología",
+      "patchesByTechDesc": "Organizado por stack tecnológico mostrando parches pendientes",
+      "patchesByServer": "Parches por Servidor",
+      "patchesByServerDesc": "Organizado por infraestructura mostrando parches por servidor",
+      "riskHeatmap": "Mapa de Calor de Riesgo",
+      "riskHeatmapDesc": "Mapa visual de exposición de riesgo por tipo de activo y severidad",
+      "personnelAssignments": "Personal y Asignaciones",
+      "personnelDesc": "Análisis de carga de trabajo del equipo con métricas de finalización",
+      "execSummary": "Resumen Ejecutivo",
+      "execDesc": "Reporte integral que consolida todas las métricas de seguridad y tendencias para el liderazgo",
+      "generate": "Generar Reporte",
+      "generateExec": "Generar Reporte Ejecutivo"
     },
     "settings": {
       "title": "Settings",
-      "description": "Configuración del sistema y preferencias del equipo"
+      "description": "Configuración del sistema y preferencias del equipo",
+      "general": {
+        "title": "Configuración General",
+        "theme": "Tema",
+        "dark": "Oscuro",
+        "light": "Claro",
+        "active": "Activo",
+        "comingSoon": "Próximamente",
+        "language": "Idioma",
+        "aiWorkers": "Workers de Motor de IA",
+        "aiWorkersHint": "Más workers = escaneos más rápidos, mayor uso de CPU"
+      },
+      "permissions": {
+        "title": "Permisos de Miembros del Equipo",
+        "table": {
+          "member": "Miembro",
+          "portalAccess": "Acceso Portal",
+          "runEngine": "Ejecutar Motor",
+          "receiveAlerts": "Recibir Alertas",
+          "alertChannel": "Canal de Alertas"
+        }
+      }
     },
     "teamPage": {
       "subtitle": "Gestiona equipos de seguridad, distribución de carga y acceso a la aplicación",
@@ -176,4 +308,3 @@
     "goToDashboard": "Ir al Dashboard"
   }
 }
-
