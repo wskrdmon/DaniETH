@@ -26,6 +26,7 @@ export default function Header({ onOpenSidebar }: HeaderProps) {
 
   const currentNavItem = NAV_ITEMS.find((item) => location.pathname.startsWith(item.path));
   const pageTitle = currentNavItem ? t(currentNavItem.labelKey) : t('app.name');
+  const breadcrumb = `Home / ${pageTitle}`;
 
   const currentLang = ['es', 'en', 'de', 'fr'].find(l => i18n.language.startsWith(l)) ?? 'es';
   const handleLogout = async () => {
@@ -53,15 +54,21 @@ export default function Header({ onOpenSidebar }: HeaderProps) {
     <header className="fixed top-0 right-0 z-20 left-0 lg:left-[260px] h-16 bg-bg-secondary border-b border-border-primary flex items-center justify-between px-4 lg:px-8">
       {/* Lado izquierdo: Hamburguesa + Título */}
       <div className="flex items-center gap-3 min-w-0">
-        <button 
-          type="button" 
-          onClick={onOpenSidebar} 
-          className="lg:hidden w-9 h-9 rounded-md bg-bg-tertiary border border-border-secondary flex items-center justify-center hover:bg-bg-quaternary transition-colors"
-        >
-          ☰
-        </button>
-        <h2 className="text-lg lg:text-xl font-semibold truncate">{pageTitle}</h2>
-      </div>
+          <button 
+            type="button" 
+            onClick={onOpenSidebar} 
+            className="lg:hidden w-9 h-9 rounded-md bg-bg-tertiary border border-border-secondary flex items-center justify-center hover:bg-bg-quaternary transition-colors"
+          >
+            ☰
+          </button>
+
+          <div className="min-w-0">
+            <h2 className="text-lg lg:text-xl font-semibold truncate">{pageTitle}</h2>
+            <p className="text-[11px] truncate" style={{ color: 'var(--text-muted)' }}>
+              {breadcrumb}
+            </p>
+          </div>
+        </div>
 
       {/* Lado derecho: Idioma, Tema, Avatar */}
       <div className="flex items-center gap-2 lg:gap-3">

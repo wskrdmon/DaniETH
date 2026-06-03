@@ -1,375 +1,425 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-// ─── Types (listos para conectar con el backend) ──────────────────────────────
+import ActiveScansWidget from '@/components/dashboard/ActiveScansWidget';
+import DashboardSkeleton from '@/components/dashboard/DashboardSkeleton';
+import PatchProgressWidget from '@/components/dashboard/PatchProgressWidget';
+import QuickStatsCards from '@/components/dashboard/QuickStatsCards';
+import RecentVulnerabilitiesTable from '@/components/dashboard/RecentVulnerabilitiesTable';
+import RiskHeatmap from '@/components/dashboard/RiskHeatmap';
+import RiskScoreGauge from '@/components/dashboard/RiskScoreGauge';
+import VulnerabilityDrawer from '@/components/dashboard/VulnerabilityDrawer';
 
-export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
-export type VulnStatus = 'Open' | 'In Progress' | 'Resolved';
+import {
+  mockActiveScans,
+  mockHeatmap,
+  mockPatchProgress,
+  mockQuickStats,
+  mockRecentVulnerabilities,
+  mockRiskScore,
+} from '@/components/dashboard/mockData';
 
-export interface Vulnerability {
-  cveId: string;
-  description: string;
-  asset: string;
-  severity: Severity;
-  status: VulnStatus;
-  cvss: number;
-  publishedDate: string;
-}
+import type {
+  ActiveScan,
+  HeatmapCategory,
+  PatchProgressResponse,
+  QuickStatsResponse,
+  RiskScoreResponse,
+  Vulnerability,
+} from '@/components/dashboard/types';
 
-export interface DashboardStats {
-  riskScore: number | null;
-  criticalCount: number;
-  highCount: number;
-  resolvedThisMonth: number;
-}
+import { getDashboardSocket } from '@/lib/socket';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const SEVERITY_STYLES: Record<Severity, { badge: string; color: string }> = {
-  CRITICAL: { badge: 'bg-[--severity-critical]/15 text-[--severity-critical] ring-1 ring-[--severity-critical]/30', color: 'var(--severity-critical)' },
-  HIGH:     { badge: 'bg-[--severity-high]/15 text-[--severity-high] ring-1 ring-[--severity-high]/30',             color: 'var(--severity-high)' },
-  MEDIUM:   { badge: 'bg-[--severity-medium]/15 text-[--severity-medium] ring-1 ring-[--severity-medium]/30',       color: 'var(--severity-medium)' },
-  LOW:      { badge: 'bg-[--severity-low]/15 text-[--severity-low] ring-1 ring-[--severity-low]/30',               color: 'var(--severity-low)' },
-};
-
-const STATUS_COLORS: Record<VulnStatus, string> = {
-  Open:        'text-[--severity-critical]',
-  'In Progress': 'text-[--severity-high]',
-  Resolved:    'text-[--severity-low]',
-};
-
-function riskColor(score: number | null): string {
-  if (score === null) return 'var(--text-muted)';
-  if (score >= 9) return 'var(--severity-critical)';
-  if (score >= 7) return 'var(--severity-high)';
-  if (score >= 4) return 'var(--severity-medium)';
-  return 'var(--severity-low)';
-}
-
-function riskLabel(score: number | null): string {
-  if (score === null) return '—';
-  if (score >= 9) return 'CRITICAL';
-  if (score >= 7) return 'HIGH';
-  if (score >= 4) return 'MODERATE';
-  return 'LOW';
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function SeverityBadge({ severity }: { severity: Severity }) {
+function WidgetError({
+  title,
+  message,
+  onRetry,
+  retryLabel,
+}: {
+  title: string;
+  message: string;
+  onRetry?: () => void;
+  retryLabel?: string;
+}) {
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold tracking-wide ${SEVERITY_STYLES[severity].badge}`}>
-      {severity}
-    </span>
-  );
-}
-
-function StatCard({ value, label, color, icon }: { value: number | null; label: string; color: string; icon: string }) {
-  return (
-    <div className="rounded-xl p-5 border transition-all duration-200 hover:border-[--border-secondary]"
-      style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
-      <div className="text-xl mb-3">{icon}</div>
-      <div className="text-3xl font-bold mb-1" style={{ color: value !== null ? color : 'var(--text-muted)' }}>
-        {value !== null ? value : '—'}
+    <div
+      className="rounded-xl border p-5 h-full"
+      style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}
+    >
+      <div className="text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+        {title}
       </div>
-      <div className="text-xs font-medium tracking-wide uppercase" style={{ color: 'var(--text-muted)' }}>{label}</div>
+      <p className="text-sm mb-4" style={{ color: 'var(--severity-critical)' }}>
+        {message}
+      </p>
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="px-3 py-2 rounded-lg text-xs font-semibold"
+          style={{ background: 'rgba(0,212,255,0.08)', color: 'var(--accent-cyan)' }}
+        >
+          {retryLabel}
+        </button>
+      )}
     </div>
   );
 }
-
-function RiskGauge({ score }: { score: number | null }) {
-  const color = riskColor(score);
-  const pct = score !== null ? (score / 10) * 100 : 0;
-  const circumference = 2 * Math.PI * 42;
-
-  return (
-    <div className="rounded-xl p-6 border flex flex-col items-center justify-center min-h-[180px] transition-all duration-200 hover:border-[--border-secondary]"
-      style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
-      <div className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: 'var(--text-muted)' }}>
-        Risk Score
-      </div>
-      <div className="relative w-28 h-28 mb-4">
-        <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-          <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border-primary)" strokeWidth="8" />
-          <circle cx="50" cy="50" r="42" fill="none" stroke={color} strokeWidth="8" strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference * (1 - pct / 100)}
-            style={{ transition: 'stroke-dashoffset 1s ease' }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-3xl font-bold" style={{ color }}>
-            {score !== null ? score : '—'}
-          </span>
-          <span className="text-[10px] font-medium" style={{ color: 'var(--text-muted)' }}>/10</span>
-        </div>
-      </div>
-      <div className="text-xs font-bold tracking-widest px-3 py-1 rounded-full"
-        style={{ color, background: `${color}18`, border: `1px solid ${color}30` }}>
-        {score !== null ? riskLabel(score) : '—'}
-      </div>
-    </div>
-  );
-}
-
-function VulnDrawer({ vuln, onClose }: { vuln: Vulnerability | null; onClose: () => void }) {
-  const { t } = useTranslation();
-  if (!vuln) return null;
-
-  return (
-    <>
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={onClose} />
-      <div className="fixed right-0 top-0 h-full w-full max-w-xl z-50 flex flex-col shadow-2xl overflow-y-auto"
-        style={{ background: 'var(--bg-primary)', borderLeft: '1px solid var(--border-primary)' }}>
-        
-        {/* Header interactivo */}
-        <div className="flex items-center justify-between px-8 py-6 sticky top-0 z-10 backdrop-blur-md" 
-             style={{ background: 'rgba(10, 14, 23, 0.95)', borderBottom: '1px solid var(--border-primary)' }}>
-          <div>
-            <h2 className="text-2xl font-bold font-mono" style={{ color: 'var(--accent-cyan)' }}>{vuln.cveId}</h2>
-          </div>
-          <button onClick={onClose}
-            className="w-10 h-10 rounded-full flex items-center justify-center transition-colors text-xl hover:bg-white/[0.08]"
-            style={{ color: 'var(--text-muted)' }}>✕</button>
-        </div>
-
-        <div className="flex-1 px-8 py-6 space-y-8">
-          
-          {/* Header Info */}
-          <div>
-            <div className="mb-4"><SeverityBadge severity={vuln.severity} /></div>
-            <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-              {vuln.description}
-            </h2>
-            <div className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
-              {vuln.publishedDate} • CVSS {vuln.cvss} • {vuln.asset}
-            </div>
-          </div>
-
-          {/* Detailed Explanation */}
-          <div className="p-6 rounded-xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
-            <h3 className="text-base font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-              📖 {t('pages.dashboard.drawer.detailedExplanation', 'Detailed Explanation')}
-            </h3>
-            <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }}>
-              A critical vulnerability has been detected in the system at the <code className="px-1.5 py-0.5 rounded font-mono text-xs" style={{background: 'var(--bg-tertiary)', color: 'var(--accent-cyan)'}}>/api/auth/login</code> endpoint. 
-              This vulnerability allows attackers to bypass authentication by injecting malicious queries.
-            </p>
-            <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }}>
-              <strong style={{ color: 'var(--severity-high)' }}>{t('pages.dashboard.drawer.attackVector', 'Attack Vector:')}</strong> The application constructs queries using string 
-              concatenation without proper input validation. An attacker can submit input like <code className="px-1.5 py-0.5 rounded font-mono text-xs" style={{color: 'var(--severity-critical)'}}>admin' OR '1'='1</code> to manipulate the query logic.
-            </p>
-            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-              <strong style={{ color: 'var(--severity-high)' }}>{t('pages.dashboard.drawer.impact', 'Impact:')}</strong> Successful exploitation grants unauthorized access as any user, enables 
-              data exfiltration, and potentially allows execution of arbitrary commands.
-            </p>
-          </div>
-
-          {/* Technical Details Grid */}
-          <div>
-            <h3 className="text-base font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-              🔬 {t('pages.dashboard.drawer.technicalDetails', 'Technical Details')}
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
-                <div className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>{t('pages.dashboard.drawer.cvssScore', 'CVSS Score')}</div>
-                <div className="text-xl font-bold" style={{ color: 'var(--severity-critical)' }}>{vuln.cvss} / 10.0</div>
-              </div>
-              <div className="p-4 rounded-xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
-                <div className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>{t('pages.dashboard.drawer.attackComplexity', 'Attack Complexity')}</div>
-                <div className="text-xl font-bold" style={{ color: 'var(--severity-low)' }}>{t('pages.dashboard.drawer.low', 'Low')}</div>
-              </div>
-              <div className="p-4 rounded-xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
-                <div className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>{t('pages.dashboard.drawer.privilegesRequired', 'Privileges Required')}</div>
-                <div className="text-xl font-bold" style={{ color: 'var(--severity-critical)' }}>{t('pages.dashboard.drawer.none', 'None')}</div>
-              </div>
-              <div className="p-4 rounded-xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
-                <div className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>{t('pages.dashboard.drawer.userInteraction', 'User Interaction')}</div>
-                <div className="text-xl font-bold" style={{ color: 'var(--severity-critical)' }}>{t('pages.dashboard.drawer.none', 'None')}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Remediation Steps */}
-          <div className="p-6 rounded-xl border" style={{ background: 'rgba(0, 212, 255, 0.03)', borderColor: 'rgba(0, 212, 255, 0.2)' }}>
-            <h3 className="text-base font-bold mb-5 flex items-center gap-2" style={{ color: 'var(--accent-cyan)' }}>
-              ✅ {t('pages.dashboard.drawer.remediationSteps', 'Remediation Steps')}
-            </h3>
-            <div className="space-y-6">
-              {[
-                { title: 'Implement Parameterized Queries (Immediate)', desc: 'Replace all string concatenation with parameterized queries or prepared statements.' },
-                { title: 'Add Input Validation (Within 24h)', desc: 'Implement strict input validation using whitelisting. Validate username format and reject keywords.' },
-                { title: 'Deploy WAF Rules (Within 48h)', desc: 'Configure WAF to block common injection patterns as an additional defense layer.' },
-                { title: 'Verify Fix (After implementation)', desc: 'Re-run automated security scans and conduct manual penetration testing.' }
-              ].map((step, i) => (
-                <div key={i} className="flex gap-4">
-                  <div className="w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-sm font-bold mt-0.5"
-                    style={{ background: 'var(--accent-cyan)', color: '#0a0e17' }}>{i + 1}</div>
-                  <div>
-                    <div className="text-sm font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>{step.title}</div>
-                    <div className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{step.desc}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col gap-3 pt-4 pb-8">
-            <button className="w-full py-3.5 rounded-xl text-sm font-bold transition-all hover:brightness-110 active:scale-[0.98]"
-              style={{ background: 'var(--accent-cyan)', color: '#0a0e17' }}
-              onClick={() => alert('Generando plan con IA...')}>
-              🤖 {t('pages.dashboard.drawer.generatePlan', 'Generate Remediation Plan')}
-            </button>
-            <button className="w-full py-3.5 rounded-xl text-sm font-bold transition-colors hover:bg-white/[0.05] active:scale-[0.98]"
-              style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-primary)' }}
-              onClick={() => alert('Abriendo modal de JIRA...')}>
-              📋 {t('pages.dashboard.drawer.createTicket', 'Create JIRA Ticket')}
-            </button>
-            <button className="w-full py-3.5 rounded-xl text-sm font-bold transition-colors hover:bg-white/[0.05] active:scale-[0.98]"
-              style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-primary)' }}
-              onClick={() => alert('Abriendo selector de equipo...')}>
-              👤 {t('pages.dashboard.drawer.assignTeam', 'Assign to Team Member')}
-            </button>
-          </div>
-
-        </div>
-      </div>
-    </>
-  );
-}
-
-function EmptyState({ message, hint }: { message: string; hint: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="text-4xl mb-4 opacity-30">📭</div>
-      <p className="text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>{message}</p>
-      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{hint}</p>
-    </div>
-  );
-}
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const { t } = useTranslation();
+
+  const [loading, setLoading] = useState(true);
+  const [liveMode, setLiveMode] = useState(false);
+
+  const [riskScore, setRiskScore] = useState<RiskScoreResponse | null>(null);
+  const [quickStats, setQuickStats] = useState<QuickStatsResponse | null>(null);
+  const [heatmap, setHeatmap] = useState<HeatmapCategory[]>([]);
+  const [recentVulns, setRecentVulns] = useState<Vulnerability[]>([]);
+  const [patchProgress, setPatchProgress] = useState<PatchProgressResponse | null>(null);
+  const [activeScans, setActiveScans] = useState<ActiveScan[]>([]);
   const [selectedVuln, setSelectedVuln] = useState<Vulnerability | null>(null);
 
- // Datos de prueba (Mock Data) extraídos del diseño original de Max
-  const stats: DashboardStats = {
-    riskScore: 6.8,
-    criticalCount: 14,
-    highCount: 33,
-    resolvedThisMonth: 142,
+  const [riskScoreError, setRiskScoreError] = useState<string | null>(null);
+  const [quickStatsError, setQuickStatsError] = useState<string | null>(null);
+  const [heatmapError, setHeatmapError] = useState<string | null>(null);
+  const [recentError, setRecentError] = useState<string | null>(null);
+  const [patchError, setPatchError] = useState<string | null>(null);
+  const [scansError, setScansError] = useState<string | null>(null);
+
+  const latestInsertedRef = useRef(0);
+  const socketRef = useRef<ReturnType<typeof getDashboardSocket> | null>(null);
+
+  const loadDashboard = () => {
+    setLoading(true);
+
+    setTimeout(() => {
+      try {
+        setRiskScore(mockRiskScore);
+        setRiskScoreError(null);
+      } catch {
+        setRiskScoreError(t('pages.dashboard.riskScoreError'));
+      }
+
+      try {
+        setQuickStats(mockQuickStats);
+        setQuickStatsError(null);
+      } catch {
+        setQuickStatsError(t('pages.dashboard.quickStatsError'));
+      }
+
+      try {
+        setHeatmap(mockHeatmap);
+        setHeatmapError(null);
+      } catch {
+        setHeatmapError(t('pages.dashboard.heatmapError'));
+      }
+
+      try {
+        setRecentVulns(mockRecentVulnerabilities.slice(0, 10));
+        setRecentError(null);
+      } catch {
+        setRecentError(t('pages.dashboard.recentError'));
+      }
+
+      try {
+        setPatchProgress(mockPatchProgress);
+        setPatchError(null);
+      } catch {
+        setPatchError(t('pages.dashboard.patchError'));
+      }
+
+      try {
+        setActiveScans(mockActiveScans);
+        setScansError(null);
+      } catch {
+        setScansError(t('pages.dashboard.scansError'));
+      }
+
+      setLoading(false);
+    }, 900);
   };
 
-  const vulnerabilities: Vulnerability[] = [
-    {
-      cveId: 'CVE-2024-1234',
-      description: 'SQL Injection en autenticación',
-      asset: 'api.company.com',
-      severity: 'CRITICAL',
-      status: 'In Progress',
-      cvss: 9.8,
-      publishedDate: 'Hace 2 horas'
-    },
-    {
-      cveId: 'CVE-2024-5678',
-      description: 'XSS en perfil de usuario',
-      asset: 'portal.company.com',
-      severity: 'HIGH',
-      status: 'Open',
-      cvss: 7.2,
-      publishedDate: 'Hace 5 horas'
-    }
-  ];
+  useEffect(() => {
+    loadDashboard();
+  }, []);
 
-  const openVulnDrawer = (cveId: string) => {
-    setSelectedVuln(vulnerabilities.find((v) => v.cveId === cveId) ?? null);
-  };
+  useEffect(() => {
+    const socket = getDashboardSocket();
+    socketRef.current = socket;
+
+    socket.connect();
+
+    const onConnect = () => {
+      setLiveMode(true);
+    };
+
+    const onDisconnect = () => {
+      setLiveMode(false);
+    };
+
+    const onRiskScore = (payload: RiskScoreResponse) => {
+      setRiskScore((prev) => ({
+        score: payload.score,
+        previous: prev?.score ?? payload.previous,
+        trend: payload.trend,
+      }));
+      setRiskScoreError(null);
+    };
+
+    const onRecentVulnerability = (payload: Vulnerability) => {
+      setRecentVulns((prev) => [payload, ...prev].slice(0, 10));
+      setRecentError(null);
+    };
+
+    const onScanUpdate = (payload: ActiveScan) => {
+      setActiveScans((prev) => {
+        const exists = prev.some((scan) => scan.id === payload.id);
+
+        if (!exists) {
+          return [payload, ...prev].slice(0, 6);
+        }
+
+        return prev.map((scan) => (scan.id === payload.id ? { ...scan, ...payload } : scan));
+      });
+      setScansError(null);
+    };
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('dashboard:risk-score', onRiskScore);
+    socket.on('dashboard:recent-vulnerability', onRecentVulnerability);
+    socket.on('dashboard:scan-update', onScanUpdate);
+
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('dashboard:risk-score', onRiskScore);
+      socket.off('dashboard:recent-vulnerability', onRecentVulnerability);
+      socket.off('dashboard:scan-update', onScanUpdate);
+      socket.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!riskScore || liveMode) return;
+
+    const interval = setInterval(() => {
+      setRiskScore((prev) => {
+        if (!prev) return prev;
+
+        const delta = +(Math.random() * 0.4 - 0.2).toFixed(1);
+        const nextScore = Math.min(9.8, Math.max(2.1, +(prev.score + delta).toFixed(1)));
+
+        return {
+          score: nextScore,
+          previous: prev.score,
+          trend: nextScore > prev.score ? 'increasing' : nextScore < prev.score ? 'decreasing' : 'stable',
+        };
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [riskScore, liveMode]);
+
+  useEffect(() => {
+    if (!activeScans.length || liveMode) return;
+
+    const interval = setInterval(() => {
+      setActiveScans((prev) =>
+        prev.map((scan) => {
+          if (scan.status !== 'Running') return scan;
+
+          const step = Math.floor(Math.random() * 8);
+          const nextProgress = Math.min(100, scan.progress + step);
+
+          return {
+            ...scan,
+            progress: nextProgress,
+            eta: nextProgress >= 100 ? 'Completed' : `${Math.max(1, Math.ceil((100 - nextProgress) / 4))} min`,
+            status: nextProgress >= 100 ? 'Queued' : scan.status,
+          };
+        })
+      );
+    }, 3500);
+
+    return () => clearInterval(interval);
+  }, [activeScans.length, liveMode]);
+
+  useEffect(() => {
+    if (!recentVulns.length || liveMode) return;
+
+    const interval = setInterval(() => {
+      const extraVulns: Vulnerability[] = [
+        {
+          cveId: 'CVE-2026-9101',
+          title: 'Remote Code Execution in Edge Gateway',
+          severity: 'CRITICAL',
+          asset: 'edge-gateway.company.com',
+          detectedDate: new Date().toISOString(),
+          status: 'Open',
+          cvss: 9.6,
+          description: 'Unsafe command execution path allows remote code execution.',
+        },
+        {
+          cveId: 'CVE-2026-9102',
+          title: 'SSRF in Internal Metadata Fetcher',
+          severity: 'HIGH',
+          asset: 'metadata-service.internal',
+          detectedDate: new Date().toISOString(),
+          status: 'In Progress',
+          cvss: 8.2,
+          description: 'Metadata fetch endpoint can access internal cloud resources.',
+        },
+      ];
+
+      const next = extraVulns[latestInsertedRef.current % extraVulns.length];
+      latestInsertedRef.current += 1;
+
+      setRecentVulns((prev) => [next, ...prev].slice(0, 10));
+    }, 12000);
+
+    return () => clearInterval(interval);
+  }, [recentVulns.length, liveMode]);
+
+  const hasCriticalFailure = useMemo(() => {
+    return (
+      !riskScore &&
+      !quickStats &&
+      !heatmap.length &&
+      !recentVulns.length &&
+      !patchProgress &&
+      !activeScans.length
+    );
+  }, [riskScore, quickStats, heatmap.length, recentVulns.length, patchProgress, activeScans.length]);
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
+
+  if (hasCriticalFailure) {
+    return (
+      <div
+        className="rounded-xl border p-6"
+        style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}
+      >
+        <h1 className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+          {t('pages.dashboard.title', 'Dashboard')}
+        </h1>
+        <p style={{ color: 'var(--severity-critical)' }}>
+          {t('pages.dashboard.loadWidgetsError')}
+        </p>
+        <button
+          type="button"
+          onClick={loadDashboard}
+          className="mt-4 px-4 py-2 rounded-lg text-sm font-semibold"
+          style={{ background: 'rgba(0,212,255,0.08)', color: 'var(--accent-cyan)' }}
+        >
+          {t('pages.dashboard.retry')}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full space-y-6">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            📊 {t('pages.dashboard.title', 'Dashboard')}
+          </h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+            {t('pages.dashboard.realTimeOverview')}
+          </p>
+        </div>
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-          📊 {t('pages.dashboard.title')}
-        </h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-          {t('pages.dashboard.description')}
-        </p>
-      </div>
-
-      {/* Risk Gauge + Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-4">
-        <RiskGauge score={stats.riskScore} />
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <StatCard value={stats.criticalCount || null} label={t('pages.dashboard.criticalIssues')} color="var(--severity-critical)" icon="🔴" />
-          <StatCard value={stats.highCount || null} label={t('pages.dashboard.highPriority')} color="var(--severity-high)" icon="🟠" />
-          <StatCard value={stats.resolvedThisMonth || null} label={t('pages.dashboard.resolvedThisMonth')} color="var(--severity-low)" icon="✅" />
+        <div
+          className="px-3 py-2 rounded-lg text-xs font-semibold"
+          style={{
+            background: liveMode ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
+            color: liveMode ? 'var(--severity-low)' : 'var(--severity-medium)',
+          }}
+        >
+          {liveMode ? t('pages.dashboard.liveConnected') : t('pages.dashboard.mockFallback')}
         </div>
       </div>
 
-      {/* Tabla de vulnerabilidades */}
-      <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border-primary)' }}>
-          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-            📋 {t('pages.dashboard.recentVulnerabilities')}
-          </h2>
-          <button className="text-xs font-medium transition-colors px-3 py-1.5 rounded-lg"
-            style={{ color: 'var(--accent-cyan)', border: '1px solid transparent' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,212,255,0.08)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-            {t('pages.dashboard.viewAll')} →
-          </button>
-        </div>
-
-        {vulnerabilities.length === 0 ? (
-          <EmptyState
-            message={t('pages.dashboard.noData')}
-            hint={t('pages.dashboard.noDataHint')}
-          />
+      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-4 items-stretch">
+        {riskScore && !riskScoreError ? (
+          <RiskScoreGauge data={riskScore} />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                  <th className="text-left px-5 py-3 font-semibold">{t('pages.dashboard.cveId')}</th>
-                  <th className="text-left px-5 py-3 font-semibold">{t('pages.dashboard.description2')}</th>
-                  <th className="text-left px-5 py-3 font-semibold hidden md:table-cell">{t('pages.dashboard.asset')}</th>
-                  <th className="text-left px-5 py-3 font-semibold">{t('pages.dashboard.severity')}</th>
-                  <th className="text-left px-5 py-3 font-semibold hidden sm:table-cell">{t('pages.dashboard.status')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {vulnerabilities.map((vuln) => (
-                  <tr key={vuln.cveId}
-                    className="group cursor-pointer transition-colors"
-                    style={{ borderTop: '1px solid var(--border-primary)' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-tertiary)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                    onClick={() => openVulnDrawer(vuln.cveId)}>
-                    <td className="px-5 py-3.5">
-                      <span className="font-mono font-semibold text-xs" style={{ color: 'var(--accent-cyan)' }}>{vuln.cveId}</span>
-                    </td>
-                    <td className="px-5 py-3.5 max-w-[220px] truncate" style={{ color: 'var(--text-secondary)' }}>{vuln.description}</td>
-                    <td className="px-5 py-3.5 hidden md:table-cell">
-                      <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>{vuln.asset}</span>
-                    </td>
-                    <td className="px-5 py-3.5"><SeverityBadge severity={vuln.severity} /></td>
-                    <td className="px-5 py-3.5 hidden sm:table-cell">
-                      <span className={`text-xs font-semibold ${STATUS_COLORS[vuln.status]}`}>{vuln.status}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <WidgetError
+            title={t('pages.dashboard.riskScore')}
+            message={riskScoreError ?? t('pages.dashboard.noWidgetData')}
+            onRetry={loadDashboard}
+            retryLabel={t('pages.dashboard.retry')}
+          />
+        )}
+
+        {quickStats && !quickStatsError ? (
+          <QuickStatsCards data={quickStats} />
+        ) : (
+          <WidgetError
+            title={t('pages.dashboard.quickStats')}
+            message={quickStatsError ?? t('pages.dashboard.noWidgetData')}
+            onRetry={loadDashboard}
+            retryLabel={t('pages.dashboard.retry')}
+          />
         )}
       </div>
 
-      <VulnDrawer vuln={selectedVuln} onClose={() => setSelectedVuln(null)} />
+      <div className="grid grid-cols-1 xl:grid-cols-[1.15fr_0.85fr] gap-4">
+        {heatmap.length && !heatmapError ? (
+          <RiskHeatmap data={heatmap} />
+        ) : (
+          <WidgetError
+            title={t('pages.dashboard.riskHeatmap')}
+            message={heatmapError ?? t('pages.dashboard.noWidgetData')}
+            onRetry={loadDashboard}
+            retryLabel={t('pages.dashboard.retry')}
+          />
+        )}
+
+        {patchProgress && !patchError ? (
+          <PatchProgressWidget data={patchProgress} />
+        ) : (
+          <WidgetError
+            title={t('pages.dashboard.patchProgress')}
+            message={patchError ?? t('pages.dashboard.noWidgetData')}
+            onRetry={loadDashboard}
+            retryLabel={t('pages.dashboard.retry')}
+          />
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-4">
+        {recentVulns.length && !recentError ? (
+          <RecentVulnerabilitiesTable
+            vulnerabilities={recentVulns}
+            onSelect={setSelectedVuln}
+          />
+        ) : (
+          <WidgetError
+            title={t('pages.dashboard.recentVulnerabilities')}
+            message={recentError ?? t('pages.dashboard.noWidgetData')}
+            onRetry={loadDashboard}
+            retryLabel={t('pages.dashboard.retry')}
+          />
+        )}
+
+        {activeScans.length && !scansError ? (
+          <ActiveScansWidget scans={activeScans} />
+        ) : (
+          <WidgetError
+            title={t('pages.dashboard.activeScans')}
+            message={scansError ?? t('pages.dashboard.noWidgetData')}
+            onRetry={loadDashboard}
+            retryLabel={t('pages.dashboard.retry')}
+          />
+        )}
+      </div>
+
+      <VulnerabilityDrawer vuln={selectedVuln} onClose={() => setSelectedVuln(null)} />
     </div>
   );
 }

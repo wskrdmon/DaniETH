@@ -16,10 +16,10 @@
   },
   "nav": {
     "dashboard": "Dashboard",
-    "vulnerabilities": "Vulnerability Hub",
-    "aiPentesting": "AI Pentesting",
-    "patches": "Patch Manager",
-    "team": "Team & Assets",
+    "vulnerabilities": "Schwachstellenzentrale",
+    "aiPentesting": "KI-Pentesting",
+    "patches": "Patch-Manager",
+    "team": "Team und Assets",
     "reports": "Berichte",
     "settings": "Einstellungen",
     "openMenu": "Menü öffnen",
@@ -37,6 +37,9 @@
       "criticalIssues": "Kritische Probleme",
       "highPriority": "Hohe Priorität",
       "resolvedThisMonth": "Diesen Monat gelöst",
+      "requiresImmediateAction": "Erfordert sofortige Maßnahmen",
+      "escalateWithinSla": "Innerhalb des SLA eskalieren",
+      "remediationCompleted": "Behebung abgeschlossen",
       "recentVulnerabilities": "Neueste Schwachstellen",
       "viewAll": "Alle anzeigen",
       "description2": "Beschreibung",
@@ -44,21 +47,79 @@
       "severity": "Schweregrad",
       "status": "Status",
       "noData": "Noch keine Daten",
-      "noDataHint": "Daten erscheinen hier sobald das Backend verbunden ist.",
+      "noDataHint": "Daten erscheinen hier, sobald das Backend verbunden ist.",
       "vulnDetail": "Schwachstellen-Detail",
       "published": "Veröffentlicht",
       "analyzeWithAI": "Mit KI analysieren",
-      "viewInHub": "Im VulnerabilityHub ansehen",
-      "cveId": "CVE-ID"
+      "viewInHub": "In der Schwachstellenzentrale ansehen",
+      "cveId": "CVE-ID",
+      "riskHeatmap": "Risiko-Heatmap",
+      "patchProgress": "Patch-Fortschritt",
+      "activeScans": "Aktive Scans",
+      "latestFindings": "Neueste {{count}} Funde",
+      "orderedBySeverityAndIssueCount": "Nach Schweregrad und Anzahl der Probleme sortiert",
+      "openManager": "Manager öffnen",
+      "openEngine": "Engine öffnen",
+      "completed": "{{done}}/{{total}} abgeschlossen",
+      "realTimeOverview": "Echtzeitübersicht Ihrer Sicherheitslage",
+      "liveConnected": "Live-WebSocket verbunden",
+      "mockFallback": "Mock-Fallback-Modus",
+      "noWidgetData": "Momentan nicht verfügbar.",
+      "retry": "Erneut versuchen",
+      "loadWidgetsError": "Die Dashboard-Widgets konnten nicht geladen werden.",
+      "riskScoreError": "Die Risikobewertung konnte nicht geladen werden.",
+      "quickStats": "Schnellstatistiken",
+      "quickStatsError": "Die Schnellstatistiken konnten nicht geladen werden.",
+      "heatmapError": "Die Risiko-Heatmap konnte nicht geladen werden.",
+      "recentError": "Die neuesten Schwachstellen konnten nicht geladen werden.",
+      "patchError": "Der Patch-Fortschritt konnte nicht geladen werden.",
+      "scansError": "Die aktiven Scans konnten nicht geladen werden.",
+      "previousScore": "Vorheriger Score",
+      "change": "Änderung",
+      "trend": "Trend",
+      "issues": "Probleme",
+      "clickToFilter": "Klicken Sie, um in der Schwachstellenzentrale zu filtern",
+      "segment": "Segment",
+      "detected": "Erkannt",
+      "titleCol": "Titel",
+      "realTimeStatus": "Echtzeit-Ausführungsstatus",
+      "eta": "Restzeit",
+      "progress": "Fortschritt",
+      "running": "Läuft",
+      "paused": "Pausiert",
+      "queued": "In Warteschlange",
+      "open": "Offen",
+      "inProgress": "In Bearbeitung",
+      "resolved": "Behoben",
+      "increasing": "Steigend",
+      "decreasing": "Sinkend",
+      "stable": "Stabil",
+      "critical": "Kritisch",
+      "high": "Hoch",
+      "medium": "Mittel",
+      "low": "Niedrig",
+      "webApplications": "Webanwendungen",
+      "databases": "Datenbanken",
+      "apis": "APIs",
+      "cloudInfrastructure": "Cloud-Infrastruktur",
+      "networkDevices": "Netzwerkgeräte",
+      "containers": "Container",
+      "mobileApps": "Mobile Apps",
+      "cvss": "CVSS",
+      "remediationPlan": "Behebungsplan",
+      "remediationStep1": "1. Betroffenen Endpunkt oder die Exposition des Assets validieren.",
+      "remediationStep2": "2. Patch oder Code-Behebung in der Staging-Umgebung anwenden.",
+      "remediationStep3": "3. Mit Sicherheitsscanner und manueller Prüfung erneut testen.",
+      "remediationStep4": "4. Den Fund schließen, nachdem der Nachweis der Behebung hochgeladen wurde."
     },
     "vulnerabilities": {
-      "title": "Schwachstellen-Hub",
+      "title": "Schwachstellenzentrale",
       "description": "Zentralisierte Verwaltung erkannter Schwachstellen",
-      "emptyServers": "Simulierte Serverschwachstellen. Klicken Sie auf andere Tabs, um Daten anzuzeigen.",
+      "emptyServers": "Simulierte Server-Schwachstellen. Klicken Sie auf andere Tabs, um Daten anzuzeigen.",
       "tabs": {
-        "network": "Netzwerk & Perimeter",
-        "applications": "Anwendungen & Web",
-        "servers": "Server & Dienste"
+        "network": "Netzwerk und Perimeter",
+        "applications": "Anwendungen und Web",
+        "servers": "Server und Dienste"
       },
       "filters": {
         "search": "Schwachstellen suchen...",
@@ -68,8 +129,8 @@
         "medium": "Mittel",
         "low": "Niedrig",
         "sortBy": "Sortieren nach...",
-        "sortHighLow": "Schweregrad (Hoch zu Niedrig)",
-        "sortLowHigh": "Schweregrad (Niedrig zu Hoch)"
+        "sortHighLow": "Schweregrad (hoch nach niedrig)",
+        "sortLowHigh": "Schweregrad (niedrig nach hoch)"
       },
       "table": {
         "cveId": "CVE-ID",
@@ -83,13 +144,13 @@
     },
     "aiPentesting": {
       "title": "KI-Pentesting-Engine",
-      "description": "Autonome Penetrationstest-Engine mit künstlicher Intelligenz",
+      "description": "Autonome Penetration-Testing-Engine mit künstlicher Intelligenz",
       "actions": {
         "pause": "Scan pausieren",
         "newScan": "+ Neuer Scan"
       },
       "stats": {
-        "toolsExecuting": "Aktive Tools",
+        "toolsExecuting": "Ausgeführte Tools",
         "total": "gesamt",
         "active": "Aktiv",
         "activeBranches": "Aktive Zweige",
@@ -102,10 +163,10 @@
         "remaining": "verbleibend"
       },
       "rationale": {
-        "title": "Engine-Logik",
+        "title": "Engine-Begründung",
         "currentFocus": "Aktueller Fokus",
         "decisionProcess": "Entscheidungsprozess",
-        "next": "Weiter",
+        "next": "Nächste",
         "reasoning": "Begründung"
       },
       "tools": {
@@ -120,16 +181,16 @@
       "nextSteps": {
         "title": "Nächste Schritte",
         "priority": "Priorität",
-        "eta": "Gesch. Zeit"
+        "eta": "Geschätzte Zeit"
       }
     },
     "patches": {
       "title": "Patch-Manager",
-      "description": "Patch-Management und Infrastruktur-Sanierung",
+      "description": "Patch-Verwaltung und Infrastrukturbehebung",
       "tabs": {
-        "network": "Netzwerk & Perimeter",
+        "network": "Netzwerk und Perimeter",
         "appSecurity": "Anwendungssicherheit",
-        "serversContainers": "Server & Container"
+        "serversContainers": "Server und Container"
       },
       "buttons": {
         "autoAssign": "Alle automatisch zuweisen",
@@ -145,30 +206,30 @@
       }
     },
     "team": {
-      "title": "Team & Assets",
-      "description": "Team-, Zuweisungs- und Infrastruktur-Asset-Verwaltung"
+      "title": "Team und Assets",
+      "description": "Verwaltung von Team, Zuweisungen und Infrastruktur-Assets"
     },
     "reports": {
       "title": "Berichte",
-      "description": "Erstellen Sie umfassende Sicherheitsberichte",
+      "description": "Umfassende Sicherheitsberichte erstellen",
       "vulnerabilityReport": "Schwachstellenbericht",
-      "vulnerabilityDesc": "Detaillierte Auflistung von Schwachstellen mit KI-Aktionen und Tool-Ergebnissen",
+      "vulnerabilityDesc": "Detaillierte Liste der Schwachstellen mit KI-Aktionen und Tool-Ergebnissen",
       "patchesByTech": "Patches nach Technologie",
-      "patchesByTechDesc": "Organisiert nach Technologiestack, zeigt alle ausstehenden Patches",
+      "patchesByTechDesc": "Nach Technologiestack organisiert mit allen ausstehenden Patches",
       "patchesByServer": "Patches nach Server",
-      "patchesByServerDesc": "Organisiert nach Infrastruktur, zeigt Patches pro Server",
+      "patchesByServerDesc": "Nach Infrastruktur organisiert mit Patches pro Server",
       "riskHeatmap": "Risiko-Heatmap",
-      "riskHeatmapDesc": "Visuelle Risiko-Expositionskarte nach Anlagentyp und Schweregrad",
-      "personnelAssignments": "Personal & Aufgaben",
-      "personnelDesc": "Analyse der Arbeitsbelastung des Teams mit Abschlussmetriken",
-      "execSummary": "Zusammenfassung für Führungskräfte",
-      "execDesc": "Umfassender Bericht, der alle Sicherheitskennzahlen und Trends für die Führungsebene konsolidiert",
+      "riskHeatmapDesc": "Visuelle Risikokarte nach Asset-Typ und Schweregrad",
+      "personnelAssignments": "Personal und Zuweisungen",
+      "personnelDesc": "Analyse der Team-Auslastung mit Abschlussmetriken",
+      "execSummary": "Executive Summary",
+      "execDesc": "Umfassender Bericht mit allen Sicherheitsmetriken und Trends für die Führungsebene",
       "generate": "Bericht erstellen",
-      "generateExec": "Zusammenfassenden Bericht erstellen"
+      "generateExec": "Executive-Bericht erstellen"
     },
     "settings": {
       "title": "Einstellungen",
-      "description": "Systemkonfiguration und Teamberechtigungen",
+      "description": "Systemeinstellungen und Team-Berechtigungen konfigurieren",
       "general": {
         "title": "Allgemeine Einstellungen",
         "theme": "Design",
@@ -181,101 +242,15 @@
         "aiWorkersHint": "Mehr Worker = schnellere Scans, höhere CPU-Auslastung"
       },
       "permissions": {
-        "title": "Team-Mitgliedsberechtigungen",
+        "title": "Berechtigungen der Teammitglieder",
         "table": {
           "member": "Mitglied",
-          "portalAccess": "Portal-Zugriff",
+          "portalAccess": "Portalzugang",
           "runEngine": "Engine ausführen",
-          "receiveAlerts": "Benachrichtigungen erhalten",
-          "alertChannel": "Alarmkanal"
+          "receiveAlerts": "Warnungen erhalten",
+          "alertChannel": "Warnkanal"
         }
       }
-    },
-    "teamPage": {
-      "subtitle": "Sicherheitsteams, Arbeitsverteilung und Anwendungszugriff verwalten",
-      "btnAddMember": "+ Mitglied hinzufügen",
-      "btnAnalytics": "📊 Team-Analyse",
-      "btnSyncLdap": "🔄 Von LDAP synchronisieren",
-      "stats": {
-        "totalMembers": "MITGLIEDER GESAMT",
-        "activeTasks": "AKTIVE AUFGABEN",
-        "overloaded": "ÜBERLASTET",
-        "available": "VERFÜGBAR",
-        "avgCompletion": "DURCHSCHN. ZEIT",
-        "teams": "Teams",
-        "avgPerMember": "Ø {{val}} pro Mitglied",
-        "moreThan5": ">5 Aufgaben je",
-        "lessThan3": "<3 Aufgaben je",
-        "perTask": "Pro Aufgabe"
-      },
-      "member": {
-        "idLabel": "ID:",
-        "teamLead": "Team Lead",
-        "activeTasks": "{{count}} aktive Aufgabe",
-        "activeTasks_plural": "{{count}} aktive Aufgaben",
-        "completedMonth": "Diesen Monat abgeschlossen",
-        "avgCompletion": "Durchschn. Abschlusszeit",
-        "viewReassign": "Alle Aufgaben anzeigen & neu zuweisen",
-        "workload": {
-          "label": "Aktuelle Auslastung",
-          "light": "Geringe Last",
-          "medium": "Mittlere Last",
-          "overloaded": "Überlastet"
-        },
-        "permissions": {
-          "title": "🔒 Anwendungsberechtigungen",
-          "viewDashboard": "📊 Dashboard anzeigen",
-          "runScans": "🔍 Scans ausführen",
-          "vulnerabilityHub": "⚠ Vulnerability Hub - Vollzugriff",
-          "managePatches": "✏ Patches verwalten",
-          "teamManagement": "👥 Teamverwaltung",
-          "adminSettings": "⚙ Admin-Einstellungen"
-        },
-        "notifications": {
-          "title": "🔔 Benachrichtigungseinstellungen",
-          "email": "✉ E-Mail",
-          "slack": "💬 Slack",
-          "sms": "📱 SMS (Nur Kritisch)",
-          "inApp": "🔔 In-App-Benachrichtigungen",
-          "notifyWhen": "Benachrichtigen bei:",
-          "taskAssigned": "Aufgabe zugewiesen",
-          "criticalVuln": "Kritische Schwachstellen",
-          "dailyDigest": "Tägliche Zusammenfassung"
-        },
-        "actions": {
-          "edit": "✏ Bearbeiten",
-          "delete": "🗑",
-          "moveTeam": "🔄 Team wechseln"
-        }
-      },
-      "modal": {
-        "addTitle": "+ Teammitglied hinzufügen",
-        "fieldName": "Vollständiger Name",
-        "fieldNamePlaceholder": "z.B. Max Mustermann",
-        "fieldEmail": "E-Mail",
-        "fieldEmailPlaceholder": "max@firma.de",
-        "fieldRole": "Rolle",
-        "fieldRolePlaceholder": "z.B. Netzwerktechniker",
-        "fieldTeamLead": "Ist Team Lead",
-        "btnAdd": "Mitglied hinzufügen",
-        "btnAdding": "Speichern...",
-        "errorRequired": "Name, E-Mail und Rolle sind erforderlich.",
-        "errorApi": "Fehler beim Erstellen des Mitglieds."
-      },
-      "empty": {
-        "noTeams": "Noch keine Teams erstellt",
-        "noTeamsHint": "Teams werden über die Firebase-Konsole oder per API erstellt.",
-        "noMembers": "Dieses Team hat noch keine Mitglieder.",
-        "btnFirstMember": "+ Erstes Mitglied hinzufügen"
-      },
-      "error": {
-        "loadFailed": "Teaminformationen konnten nicht geladen werden.",
-        "loadHint": "Bitte Backend-Verbindung prüfen.",
-        "retry": "Erneut versuchen",
-        "deleteFailed": "Fehler beim Löschen des Mitglieds.",
-        "confirmDelete": "Dieses Teammitglied löschen?"
-      },
-      "loading": "Team & Assets werden geladen..."
     }
   },
   "setup": {
