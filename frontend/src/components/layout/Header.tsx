@@ -51,7 +51,7 @@ export default function Header({ onOpenSidebar }: HeaderProps) {
   ).charAt(0).toUpperCase();
 
   return (
-    <header className="fixed top-0 right-0 z-20 left-0 lg:left-[260px] h-16 bg-bg-secondary border-b border-border-primary flex items-center justify-between px-4 lg:px-8">
+    <header className="fixed top-0 right-0 z-20 left-0 lg:left-[260px] h-[72px] bg-bg-secondary border-b border-border-primary flex items-center justify-between px-4 lg:px-8">
       {/* Lado izquierdo: Hamburguesa + Título */}
       <div className="flex items-center gap-3 min-w-0">
           <button 
@@ -91,6 +91,23 @@ export default function Header({ onOpenSidebar }: HeaderProps) {
           {theme === 'dark' ? '🌙' : '☀️'}
         </button>
 
+        {/* Botón de Notificaciones */}
+        <button 
+          type="button" 
+          className="relative p-2 rounded-lg text-text-muted hover:bg-bg-tertiary transition-colors"
+          aria-label="Notificaciones"
+        >
+          {/* Icono de Campana (SVG nativo para no instalar nada extra) */}
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          
+          {/* El Badge (El circulito rojo con el número) */}
+          <span className="absolute top-1 right-1 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full">
+            3
+          </span>
+        </button>
+
         {/* Menú de Usuario */}
         <div className="relative">
           <div 
@@ -106,6 +123,8 @@ export default function Header({ onOpenSidebar }: HeaderProps) {
               <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)}></div>
               
               <div className="absolute right-0 mt-2 w-64 bg-bg-secondary border border-border-primary rounded-lg shadow-2xl z-20 py-2 animate-in fade-in zoom-in duration-200">
+                
+                {/* 1. La cabecera con tu información (Intacta) */}
                 <div className="px-4 py-3 border-b border-border-primary">
                   <p className="text-sm font-bold text-white truncate">
                     {profile?.name || user?.displayName || 'Usuario'}
@@ -118,14 +137,29 @@ export default function Header({ onOpenSidebar }: HeaderProps) {
                   </div>
                 </div>
                 
+                {/* Los 3 botones requeridos */}
+                <div className="p-1 border-b border-border-primary">
+                  <button className="w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-bg-tertiary rounded-md transition-colors flex items-center gap-2">
+                    <span>👤</span> Mi Perfil
+                  </button>
+                  <button className="w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-bg-tertiary rounded-md transition-colors flex items-center gap-2">
+                    <span>⚙️</span> Configuración
+                  </button>
+                  <button className="w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-bg-tertiary rounded-md transition-colors flex items-center gap-2">
+                    <span>❓</span> Ayuda
+                  </button>
+                </div>
+
+                {/* boton para cerrar sesion */}
                 <div className="p-1">
                   <button 
                     onClick={handleLogout} 
                     className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 rounded-md transition-colors flex items-center gap-2"
                   >
-                    <span>🚪</span> {'Cerrar Sesión'}
+                    <span>🚪</span> Cerrar Sesión
                   </button>
                 </div>
+                
               </div>
             </>
           )}
