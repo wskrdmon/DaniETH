@@ -2,14 +2,14 @@
  * Layout principal de la aplicación (después del login).
  *
  * Estructura:
- *   ┌──────────────────────────────────────────┐
- *   │ Sidebar │           Header                │
- *   │  260px  ├─────────────────────────────────┤
- *   │         │                                 │
- *   │         │       <Outlet />                │
- *   │         │     (página actual)             │
- *   │         │                                 │
- *   └──────────────────────────────────────────┘
+ * ┌──────────────────────────────────────────┐
+ * │ Sidebar │           Header                │
+ * │  260px  ├─────────────────────────────────┤
+ * │         │                                 │
+ * │         │       <Outlet />                │
+ * │         │     (página actual)             │
+ * │         │                                 │
+ * └──────────────────────────────────────────┘
  *
  * El <Outlet /> es donde React Router renderiza la página correspondiente
  * a la ruta actual (Dashboard, Vulnerability Hub, etc.).
@@ -36,12 +36,8 @@ export default function DashboardLayout() {
 
       {/* Área de contenido principal */}
       <main
-        className="
-          lg:ml-[260px]
-          mt-16
-          min-h-[calc(100vh-4rem)]
-          p-4 sm:p-6 lg:p-8
-        "
+        key={location.pathname}        
+        className="lg:ml-[260px] mt-[72px] min-h-[calc(100vh-72px)] p-4 sm:p-6 lg:p-8 animate-fade-page"
       >
         <Outlet />
       </main>

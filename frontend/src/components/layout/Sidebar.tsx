@@ -69,7 +69,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 flex items-center gap-3 px-6 py-3
                 text-sm font-medium
                 border-l-[3px]
-                transition-colors duration-150
+                transition-colors duration-200
                 ${
                   isActive
                     ? 'bg-bg-tertiary text-accent-cyan border-accent-cyan'
@@ -87,7 +87,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Footer del sidebar con la versión */}
         <div className="px-6 py-4 border-t border-border-primary">
-          <p className="text-xs text-text-muted">v0.1.0 — Sprint 1</p>
+          <p className="text-xs text-text-muted">v1.0.0</p>
         </div>
       </aside>
     </>
