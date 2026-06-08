@@ -1,0 +1,478 @@
+[
+  {
+    "id": "nmap",
+    "name": "Nmap",
+    "category": "network_scanning",
+    "docker_image": "dani-eth/nmap:0.1.0",
+    "container_name": "dani-eth-nmap",
+    "description_for_humans": "Nmap es una herramienta de escaneo de red utilizada para descubrir hosts activos, puertos abiertos y servicios disponibles en un objetivo autorizado.",
+    "description_for_llm": "Usar Nmap cuando la tarea requiera reconocimiento de red, descubrimiento de puertos abiertos, detección básica de servicios o validación de exposición de red en un activo autorizado. No usar Nmap para pruebas de inyección SQL, XSS o análisis de tokens JWT.",
+    "tool_inside_container": {
+      "binary": "nmap",
+      "version_command": "nmap --version",
+      "default_execution": "nmap -sT -Pn -p 80 <target>",
+      "output_path": "/workspace/output/nmap-result.xml"
+    },
+    "capabilities": [
+      "Descubrir puertos abiertos en un host autorizado",
+      "Identificar servicios expuestos en puertos específicos",
+      "Realizar escaneos TCP connect sin privilegios especiales",
+      "Generar resultados estructurados en formato XML",
+      "Apoyar tareas de reconocimiento inicial de red"
+    ],
+    "recommended_tasks": [
+      "Escanear puertos de un servidor",
+      "Validar si un servicio web está expuesto",
+      "Comprobar si los puertos 80 y 443 están abiertos",
+      "Obtener información básica de red antes de ejecutar herramientas web",
+      "Realizar reconocimiento inicial de un activo autorizado"
+    ],
+    "not_recommended_for": [
+      "Detectar inyección SQL",
+      "Detectar vulnerabilidades XSS",
+      "Analizar tokens JWT",
+      "Explotar vulnerabilidades",
+      "Realizar ataques de fuerza bruta"
+    ],
+    "allowed_params": [
+      "-p",
+      "--top-ports"
+    ],
+    "blocked_params": [
+      "-A",
+      "-O",
+      "-sS",
+      "--script",
+      "--script-args",
+      "-T5"
+    ],
+    "input_schema": {
+      "target": {
+        "type": "string",
+        "description": "IP, hostname, dominio interno o nombre de contenedor autorizado.",
+        "examples": [
+          "lab-web",
+          "192.168.1.10",
+          "example.local"
+        ]
+      },
+      "params": {
+        "type": "array",
+        "description": "Lista de parámetros permitidos para Nmap.",
+        "examples": [
+          [
+            "-p",
+            "80"
+          ],
+          [
+            "-p",
+            "80,443"
+          ],
+          [
+            "--top-ports",
+            "100"
+          ]
+        ]
+      }
+    },
+    "output_schema": {
+      "format": "XML",
+      "file": "nmap-result.xml",
+      "path_inside_container": "/workspace/output/nmap-result.xml",
+      "description": "Archivo XML generado por Nmap con información de hosts, puertos y estado de servicios."
+    },
+    "execution_instructions": {},
+    "execution_policy": {
+      "requires_authorized_target": true,
+      "requires_network": true,
+      "runs_as_non_root": true,
+      "timeout_seconds": 300,
+      "cpu_limit": "1.0",
+      "memory_limit": "512m"
+    },
+    "versions": [
+      {
+        "version": "0.1.0",
+        "image": "dani-eth/nmap:0.1.0",
+        "status": "rollback",
+        "health_status": "ok",
+        "healthcheck_args": [
+          "--version"
+        ],
+        "notes": "Primera versión funcional probada localmente contra lab-web, detectando el puerto 80 abierto."
+      },
+      {
+        "version": "0.2.0",
+        "image": "dani-eth/nmap:0.2.0",
+        "status": "rollback",
+        "health_status": "ok",
+        "healthcheck_args": [
+          "--version"
+        ],
+        "notes": "Health check ejecutado correctamente"
+      },
+      {
+        "version": "0.3.0",
+        "image": "dani-eth/nmap:0.3.0",
+        "status": "rollback",
+        "health_status": "ok",
+        "healthcheck_args": [
+          "--version"
+        ],
+        "notes": "Versión anterior estable, disponible para rollback"
+      },
+      {
+        "version": "0.4.0",
+        "image": "dani-eth/nmap:0.4.0",
+        "status": "stable",
+        "health_status": "ok",
+        "healthcheck_args": [
+          "--version"
+        ],
+        "notes": "Versión construida, validada y promovida automáticamente a stable"
+      },
+      {
+        "version": "0.9.0",
+        "image": "dani-eth/nmap:0.9.0",
+        "status": "candidate",
+        "health_status": "unknown",
+        "healthcheck_args": [
+          "--version"
+        ],
+        "notes": "Versión inexistente para probar rollback"
+      }
+    ]
+  },
+  {
+    "id": "nuclei",
+    "name": "Nuclei",
+    "category": "template_scanning",
+    "docker_image": "dani-eth/nuclei:0.1.0",
+    "container_name": "dani-eth-nuclei",
+    "description_for_humans": "Nuclei es una herramienta de escaneo basada en templates que permite detectar vulnerabilidades conocidas, malas configuraciones y exposiciones comunes en servicios web autorizados.",
+    "description_for_llm": "Usar Nuclei cuando la tarea requiera ejecutar templates de detección sobre una URL o servicio autorizado. Es útil para detección de CVEs, configuraciones inseguras, paneles expuestos, tecnologías vulnerables y verificaciones automatizadas basadas en plantillas. No usar Nuclei para escaneo de puertos, inyección SQL profunda o análisis de tokens JWT.",
+    "tool_inside_container": {
+      "binary": "nuclei",
+      "version_command": "nuclei -version",
+      "default_execution": "nuclei -u <target> -silent -jsonl -o /workspace/output/nuclei-result.jsonl",
+      "output_path": "/workspace/output/nuclei-result.jsonl"
+    },
+    "capabilities": [
+      "Ejecutar templates de detección sobre URLs autorizadas",
+      "Detectar vulnerabilidades conocidas mediante plantillas",
+      "Identificar configuraciones inseguras en aplicaciones web",
+      "Generar resultados en formato JSONL",
+      "Apoyar el análisis automatizado de exposición web"
+    ],
+    "recommended_tasks": [
+      "Escanear una URL autorizada con templates de seguridad",
+      "Buscar CVEs conocidos en un servicio web",
+      "Detectar paneles o rutas expuestas",
+      "Validar configuraciones inseguras",
+      "Complementar el reconocimiento posterior a un escaneo Nmap"
+    ],
+    "not_recommended_for": [
+      "Descubrir puertos abiertos",
+      "Ejecutar explotación manual",
+      "Detectar inyección SQL profunda",
+      "Analizar tokens JWT",
+      "Realizar fuerza bruta"
+    ],
+    "allowed_params": [
+      "-tags",
+      "-severity",
+      "-t"
+    ],
+    "blocked_params": [
+      "-headless",
+      "-interactsh-url",
+      "-proxy",
+      "-system-resolvers"
+    ],
+    "input_schema": {
+      "target": {
+        "type": "string",
+        "description": "URL autorizada a analizar.",
+        "examples": [
+          "http://lab-web",
+          "https://example.local"
+        ]
+      },
+      "params": {
+        "type": "array",
+        "description": "Parámetros permitidos para limitar templates, tags o severidad.",
+        "examples": [
+          [
+            "-severity",
+            "critical,high"
+          ],
+          [
+            "-tags",
+            "cves"
+          ],
+          [
+            "-t",
+            "http/exposures/"
+          ]
+        ]
+      }
+    },
+    "output_schema": {
+      "format": "JSONL",
+      "file": "nuclei-result.jsonl",
+      "path_inside_container": "/workspace/output/nuclei-result.jsonl",
+      "description": "Archivo JSONL con hallazgos detectados por templates de Nuclei."
+    },
+    "execution_instructions": {
+      "for_orchestrator": "Enviar tool_id='nuclei', target con URL autorizada y params opcionales como severidad o tags.",
+      "example_job": {
+        "tool_id": "nuclei",
+        "target": "http://lab-web",
+        "params": [
+          "-severity",
+          "critical,high"
+        ],
+        "allow_rollback": true
+      },
+      "runner_command_pattern": "docker run --rm --network dani-eth-lab --mount type=bind,src=<job_dir>,dst=/workspace/output dani-eth/nuclei:<version> -u <target> -silent -jsonl <params> -o /workspace/output/nuclei-result.jsonl"
+    },
+    "execution_policy": {
+      "requires_authorized_target": true,
+      "requires_network": true,
+      "runs_as_non_root": true,
+      "timeout_seconds": 600,
+      "cpu_limit": "1.0",
+      "memory_limit": "512m"
+    },
+    "versions": [
+      {
+        "version": "0.1.0",
+        "image": "dani-eth/nuclei:0.1.0",
+        "status": "stable",
+        "health_status": "unknown",
+        "healthcheck_args": [
+          "-version"
+        ],
+        "notes": "Primera versión Docker de Nuclei pendiente de prueba completa"
+      }
+    ]
+  },
+  {
+    "id": "sqlmap",
+    "name": "SQLMap",
+    "category": "sql_injection_testing",
+    "docker_image": "dani-eth/sqlmap:0.1.0",
+    "container_name": "dani-eth-sqlmap",
+    "description_for_humans": "SQLMap es una herramienta orientada a la detección automatizada de posibles vulnerabilidades de inyección SQL en endpoints autorizados.",
+    "description_for_llm": "Usar SQLMap cuando la tarea requiera evaluar una URL autorizada que tenga parámetros potencialmente vulnerables a inyección SQL. Es útil cuando el objetivo contiene query strings, formularios o parámetros HTTP relacionados con consultas a bases de datos. No usar SQLMap para escaneo general de puertos, detección XSS o análisis de JWT.",
+    "tool_inside_container": {
+      "binary": "sqlmap",
+      "version_command": "python /opt/sqlmap/sqlmap.py --version",
+      "default_execution": "python /opt/sqlmap/sqlmap.py -u <target> --batch",
+      "output_path": "/workspace/output/sqlmap-result.txt"
+    },
+    "capabilities": [
+      "Evaluar posibles puntos de inyección SQL en URLs autorizadas",
+      "Automatizar pruebas controladas de inyección SQL",
+      "Trabajar con parámetros GET en endpoints web",
+      "Generar salida técnica para análisis posterior"
+    ],
+    "recommended_tasks": [
+      "Evaluar una URL con parámetros sospechosos",
+      "Comprobar si un endpoint es vulnerable a inyección SQL",
+      "Realizar pruebas controladas con bajo nivel de riesgo",
+      "Complementar hallazgos detectados por herramientas web"
+    ],
+    "not_recommended_for": [
+      "Escaneo de puertos",
+      "Detección XSS",
+      "Análisis de tokens JWT",
+      "Reconocimiento inicial de red",
+      "Pruebas sobre objetivos no autorizados"
+    ],
+    "allowed_params": [
+      "--batch",
+      "--risk",
+      "--level",
+      "--dbs"
+    ],
+    "blocked_params": [
+      "--os-shell",
+      "--os-pwn",
+      "--file-read",
+      "--file-write",
+      "--tamper",
+      "--proxy"
+    ],
+    "input_schema": {
+      "target": {
+        "type": "string",
+        "description": "URL autorizada con parámetros GET.",
+        "examples": [
+          "http://test.local/product.php?id=1",
+          "http://lab-web/item?id=2"
+        ]
+      },
+      "params": {
+        "type": "array",
+        "description": "Parámetros permitidos para ajustar nivel y riesgo de prueba.",
+        "examples": [
+          [
+            "--batch"
+          ],
+          [
+            "--risk",
+            "1",
+            "--level",
+            "1"
+          ],
+          [
+            "--dbs"
+          ]
+        ]
+      }
+    },
+    "output_schema": {
+      "format": "TEXT",
+      "file": "sqlmap-result.txt",
+      "path_inside_container": "/workspace/output/sqlmap-result.txt",
+      "description": "Archivo de texto con salida técnica de SQLMap."
+    },
+    "execution_instructions": {
+      "for_orchestrator": "Enviar tool_id='sqlmap', target con URL autorizada que incluya parámetros y params controlados como --batch, --risk o --level.",
+      "example_job": {
+        "tool_id": "sqlmap",
+        "target": "http://lab-web/product.php?id=1",
+        "params": [
+          "--batch",
+          "--risk",
+          "1",
+          "--level",
+          "1"
+        ],
+        "allow_rollback": true
+      },
+      "runner_command_pattern": "docker run --rm --network dani-eth-lab --mount type=bind,src=<job_dir>,dst=/workspace/output dani-eth/sqlmap:<version> -u <target> --batch <params>"
+    },
+    "execution_policy": {
+      "requires_authorized_target": true,
+      "requires_network": true,
+      "runs_as_non_root": true,
+      "timeout_seconds": 900,
+      "cpu_limit": "1.0",
+      "memory_limit": "512m"
+    },
+    "versions": [
+      {
+        "version": "0.1.0",
+        "image": "dani-eth/sqlmap:0.1.0",
+        "status": "stable",
+        "health_status": "unknown",
+        "healthcheck_args": [
+          "--version"
+        ],
+        "notes": "Primera versión Docker de SQLMap pendiente de prueba completa"
+      }
+    ]
+  },
+  {
+    "id": "xsstrike",
+    "name": "XSStrike",
+    "category": "xss_testing",
+    "docker_image": "dani-eth/xsstrike:0.1.0",
+    "container_name": "dani-eth-xsstrike",
+    "description_for_humans": "XSStrike es una herramienta utilizada para analizar posibles vulnerabilidades XSS en aplicaciones web autorizadas.",
+    "description_for_llm": "Usar XSStrike cuando la tarea requiera evaluar posibles vulnerabilidades Cross-Site Scripting en una URL autorizada. Es útil para analizar parámetros reflejados, formularios y puntos de entrada web. No usar XSStrike para escaneo de puertos, inyección SQL o análisis de JWT.",
+    "tool_inside_container": {
+      "binary": "xsstrike",
+      "version_command": "python /opt/xsstrike/xsstrike.py --help",
+      "default_execution": "python /opt/xsstrike/xsstrike.py -u <target>",
+      "output_path": "/workspace/output/xsstrike-result.txt"
+    },
+    "capabilities": [
+      "Analizar posibles vulnerabilidades XSS en URLs autorizadas",
+      "Evaluar parámetros reflejados en aplicaciones web",
+      "Realizar pruebas de payloads XSS controladas",
+      "Apoyar el análisis de seguridad web"
+    ],
+    "recommended_tasks": [
+      "Evaluar una URL con parámetros reflejados",
+      "Analizar posibles puntos XSS",
+      "Complementar análisis web después de Nuclei",
+      "Revisar formularios o endpoints con entradas de usuario"
+    ],
+    "not_recommended_for": [
+      "Descubrir puertos abiertos",
+      "Detectar inyección SQL",
+      "Analizar tokens JWT",
+      "Escaneo general de red",
+      "Ataques de fuerza bruta"
+    ],
+    "allowed_params": [
+      "--crawl",
+      "--blind"
+    ],
+    "blocked_params": [
+      "--proxy",
+      "--headers",
+      "--skip"
+    ],
+    "input_schema": {
+      "target": {
+        "type": "string",
+        "description": "URL autorizada a evaluar por posibles XSS.",
+        "examples": [
+          "http://lab-web/search?q=test",
+          "https://example.local/page?name=test"
+        ]
+      },
+      "params": {
+        "type": "array",
+        "description": "Parámetros opcionales permitidos para XSStrike.",
+        "examples": [
+          [
+            "--crawl"
+          ]
+        ]
+      }
+    },
+    "output_schema": {
+      "format": "TEXT",
+      "file": "xsstrike-result.txt",
+      "path_inside_container": "/workspace/output/xsstrike-result.txt",
+      "description": "Archivo de texto con salida técnica de XSStrike."
+    },
+    "execution_instructions": {
+      "for_orchestrator": "Enviar tool_id='xsstrike', target con URL autorizada y parámetros opcionales como --crawl.",
+      "example_job": {
+        "tool_id": "xsstrike",
+        "target": "http://lab-web/search?q=test",
+        "params": [
+          "--crawl"
+        ],
+        "allow_rollback": true
+      },
+      "runner_command_pattern": "docker run --rm --network dani-eth-lab --mount type=bind,src=<job_dir>,dst=/workspace/output dani-eth/xsstrike:<version> -u <target> <params>"
+    },
+    "execution_policy": {
+      "requires_authorized_target": true,
+      "requires_network": true,
+      "runs_as_non_root": true,
+      "timeout_seconds": 600,
+      "cpu_limit": "1.0",
+      "memory_limit": "512m"
+    },
+    "versions": [
+      {
+        "version": "0.1.0",
+        "image": "dani-eth/xsstrike:0.1.0",
+        "status": "stable",
+        "health_status": "unknown",
+        "healthcheck_args": [
+          "--help"
+        ],
+        "notes": "Primera versión Docker de XSStrike pendiente de prueba completa"
+      }
+    ]
+  }
+]
